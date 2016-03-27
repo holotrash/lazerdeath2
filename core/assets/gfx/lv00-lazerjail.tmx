@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <map version="1.0" orientation="orthogonal" renderorder="right-down" width="12" height="12" tilewidth="128" tileheight="128" nextobjectid="1">
  <tileset firstgid="1" name="lazerjail" tilewidth="128" tileheight="128">
-  <image source="lazerjail_tileset.png" width="640" height="512"/>
+  <image source="lv00-lazerjail.png" width="640" height="512"/>
  </tileset>
  <layer name="Tile Layer 1" width="12" height="12">
   <data encoding="base64" compression="zlib">
-   eJxjY2BgYKMSFsQhzk4kprZ6FiBmpaH5uNRzQjE3lOYi0Xx+KqtnBGImIGYmUj0pGABTTAPX
+   eJxjY2BgYKMSFsAhzk4kpoV6FiBmpaH52NRzQjE3lOYi0Xx+KqtnBGImIGYmUj0pGABRbAPW
   </data>
  </layer>
 </map>

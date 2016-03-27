@@ -1,0 +1,26 @@
+START
+Cop1: "Hey, he's waking up."
+Cop2: "Hey, you little piece of shit! We found you face-down in the space-sewer. You're not supposed to be passed out in the space-sewer!"
+Cop1: "Now that he's awake, I'll go get a gun so we can kill him. You guys stay here in case he tries to escape using some kind of psionic power."
+Cop3: "OK."
+Cop2: "Sure thing."
+Ricky: "Oh, shit. I gotta get out of here."
+%CONTINUE,SKIP
+END
+Ricky: "That was fucked up."
+"I seem to be in some kind of basement. Maybe the exit to the street is up these stairs."
+"I hope I don't have to psionically kill many more cops."
+%CONTINUE,SKIP
+TILE
+3,4
+Ricky: "Maybe I do have some kind of psionic power. Maybe I could try to use it to open this cell door..."
+%TRY IT,DO NOTHING
+TILE
+7,10
+Ricky: "There's the door..."
+%OPEN,DO NOTHING
+DEATH
+Cop2
+Cop2: "But I have a family! Goodbye little Cop2 Jr!"
+%FEEL SAD,DON'T CARE 
+

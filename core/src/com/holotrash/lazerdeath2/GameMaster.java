@@ -8,7 +8,7 @@ import org.newdawn.slick.util.pathfinding.AStarPathFinder;
 
 public class GameMaster {
 
-	private Map mapData;
+	public Map mapData;
 	private Dude[] dudes;
 	private Enemy[] enemies;
 	public TileMath tileMath;
@@ -127,12 +127,12 @@ public class GameMaster {
 	}
 
 	public boolean dudesTurnOver() {
-		boolean allDudesMoved = true;
+		boolean allDudesActed = true;
 		for (Dude dude : dudes){
-			if (!dude.hasMoved())
-				allDudesMoved = false;
+			if (!dude.hasMoved() || !dude.hasAttacked())
+				allDudesActed = false;
 		}
-		return allDudesMoved;
+		return allDudesActed;
 	}
 
 	public void resetDudesMoved() {
@@ -144,7 +144,7 @@ public class GameMaster {
 	public boolean enemiesTurnOver() {
 		boolean allEnemiesMoved = true;
 		for (Enemy enemy : enemies){
-			if (!enemy.hasMoved())
+			if (!enemy.hasMoved() || !enemy.hasAttacked())
 				allEnemiesMoved = false;
 		}
 		return allEnemiesMoved;

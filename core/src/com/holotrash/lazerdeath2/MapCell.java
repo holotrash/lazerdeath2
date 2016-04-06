@@ -51,4 +51,8 @@ public class MapCell {
 		this.traversable = bool;
 	}
 	
+	public void setOccupied(boolean bool)
+	{
+		this.occupied = bool;
+	}
 }

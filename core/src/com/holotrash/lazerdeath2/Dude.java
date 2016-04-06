@@ -1,5 +1,7 @@
 package com.holotrash.lazerdeath2;
 
+import java.util.Random;
+
 import org.newdawn.slick.util.pathfinding.Mover;
 
 import com.badlogic.gdx.graphics.Texture;
@@ -18,7 +20,11 @@ public class Dude implements Unit, Mover{
 	private Sprite sprite;
 	private GameMaster gm;
 	
+	private Weapon weapon;
+	
 	private boolean hasMoved;
+	private boolean hasAttacked;
+	private Random dice;
 	
 	public Dude(String name,
 			    Texture texture, 
@@ -42,6 +48,9 @@ public class Dude implements Unit, Mover{
 		this.position = position;
 		this.gm = gm;
 		this.hasMoved = false;
+		this.hasAttacked = false;
+		this.dice = new Random();
+		this.weapon = null;
 	}
 	
 	public Dude() {
@@ -106,9 +115,11 @@ public class Dude implements Unit, Mover{
 	@Override
 	public void move(Coord destination) {
 		if (!this.hasMoved && gm.tileMath.unitMoveCoords(this).contains(destination)){
+			gm.mapData.setTileOccupied(this.position, false);
+			gm.mapData.setTileOccupied(this.position, true);
 			this.position = destination;
 			// TODO play move sound
-			this.hasMoved = true;
+			//this.hasMoved = true;
 		}
 	}
 	
@@ -131,6 +142,37 @@ public class Dude implements Unit, Mover{
 	public void setMovable() {
 		this.hasMoved = false;
 		
+	}
+	
+	public void setCanAttack(){
+		this.hasAttacked = false;
+	}
+	public void setWeapon(Weapon weapon){
+		this.weapon = weapon;
+	}
+	
+	// returns true on hit, false on miss
+	public boolean Attack(Unit unit){
+		boolean attackHit;
+		int percentChanceToHit = ((unit.dodge() + this.accuracy())/2);
+		int diceRoll = this.dice.nextInt(99) + 1;
+		
+		if (!(diceRoll > percentChanceToHit)){
+			attackHit = true;
+			int damage = weapon.getDamage();
+			unit.takeDmg(damage);
+			System.out.println("Attack hit! " + unit.name() + " takes " + damage + " damage." );
+			System.out.println(unit.name() + " has " + unit.hp() + " hit points.");
+		} else {
+			attackHit = false;
+			System.out.println("Attack miss!");
+		}
+		this.hasAttacked = true;
+		return attackHit;
+	}
+
+	public boolean hasAttacked() {
+		return this.hasAttacked;
 	}
 	
 }

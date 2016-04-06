@@ -152,4 +152,10 @@ public class Map implements TileBasedMap{
 		game.addInteractedTile(it);
 	}
 	
+	public void setTileOccupied(Coord coord, boolean status){
+		MapCell temp = mapData.get(coord);
+		temp.setOccupied(status);
+		mapData.put(coord, temp);
+	}
+	
 }

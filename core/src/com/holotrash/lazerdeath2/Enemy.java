@@ -1,5 +1,7 @@
 package com.holotrash.lazerdeath2;
 
+import java.util.Random;
+
 import org.newdawn.slick.util.pathfinding.Mover;
 
 import com.badlogic.gdx.graphics.Texture;
@@ -17,6 +19,11 @@ public class Enemy implements Unit, Mover{
 	private Sprite sprite;
 	
 	private boolean hasMoved;
+	private boolean hasAttacked;
+	
+	private Random dice;
+	
+	private Weapon weapon;
 	
 	public Enemy(String name,
 			Texture texture, 
@@ -26,7 +33,8 @@ public class Enemy implements Unit, Mover{
 		    int dodge, 
 		    int accuracy, 
 		    int range, 
-		    Coord position)
+		    Coord position,
+		    Weapon weapon)
 	{
 	this.name = name;
 	sprite = new Sprite(texture, 0, 0, 128, 128);
@@ -38,6 +46,9 @@ public class Enemy implements Unit, Mover{
 	this.range = range;
 	this.position = position;
 	this.hasMoved = false;
+	this.hasAttacked = false;
+	this.dice = new Random();
+	this.weapon = weapon;
 	}
 	
 	public void takeDmg(int dmg){
@@ -78,7 +89,7 @@ public class Enemy implements Unit, Mover{
 
 	@Override
 	public boolean isDead() {
-		return (hp == 0);
+		return !(hp > 0);
 	}
 
 	@Override
@@ -110,5 +121,33 @@ public class Enemy implements Unit, Mover{
 	@Override
 	public void setMovable() {
 		this.hasMoved = false;
+	}
+
+	public void setCanAttack(){
+		this.hasAttacked = false;
+	}
+	
+	public boolean hasAttacked() {
+		return this.hasAttacked;
+	}
+	
+	// returns true on hit, false on miss
+	public boolean Attack(Unit unit){
+		boolean attackHit;
+		int percentChanceToHit = ((unit.dodge() + this.accuracy())/100);
+		int diceRoll = this.dice.nextInt(99) + 1;
+		
+		if (!(diceRoll > percentChanceToHit)){
+			attackHit = true;
+			unit.takeDmg(weapon.getDamage());
+		} else {
+			attackHit = false;
+		}
+		this.hasAttacked = true;
+		return attackHit;
+	}
+	
+	public void setWeapon(Weapon weapon){
+		this.weapon = weapon;
 	}
 }

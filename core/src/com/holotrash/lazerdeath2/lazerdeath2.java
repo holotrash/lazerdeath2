@@ -116,14 +116,19 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
     	}
         //draw dudes and enemies
         for (int i=0;i<dudes.length;i++){
-        	spriteBatch.draw(dudes[i].sprite(),
+        	if(!dudes[i].isDead()){
+        		spriteBatch.draw(dudes[i].sprite(),
         			         128*(dudes[i].position().x()), 
         			         128*(dudes[i].position().y()));
+        
+        	}
         }
         for (int i=0;i<enemies.length;i++){
-        	spriteBatch.draw(enemies[i].sprite(),
+        	if(!enemies[i].isDead()){
+        		spriteBatch.draw(enemies[i].sprite(),
         					 128*(enemies[i].position().x()),
         				     128*(enemies[i].position().y()));
+        	}
         }
         if (gm.dudesTurn()){
         	spriteBatch.setColor(hlColor);
@@ -240,9 +245,30 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
     		lastClickedCell = pixelToCell(vector3ToCoord(camera.unproject(new Vector3(screenX, screenY, 0))));
     		System.out.println("last clicked cell: (" + lastClickedCell.x() + "," + lastClickedCell.y() + ")");
 		
-    		//move neccessary dudes
-    		if (gm.dudesMoving()){ // dudes are responsible for limiting their own movement
-    			dudes[gm.dudeMoving()].move(lastClickedCell);
+    		//move necessary dudes
+    		if (gm.dudesMoving()){ // dudes are responsible for limiting their own movement and attack
+    			//if lastClickedCell contains a unit, attempt to attack.
+    			// otherwise attempt to move
+    			Dude dudeMoving = dudes[gm.dudeMoving()];
+    			boolean attack = false;
+    			for (Dude dude : dudes){
+    				if (dude.position().equals(lastClickedCell)){
+    					if (!(dudeMoving == dude)){
+    						dudeMoving.Attack(dude);
+    						System.out.println("Attacking dude: " + dude.name());
+    						attack = true;
+    					}
+    				}
+    			}
+    			for (Enemy enemy : enemies){
+    				if (enemy.position().equals(lastClickedCell)){
+    					dudeMoving.Attack(enemy);
+    					System.out.println("Attacking enemy: " + enemy.name());
+    					attack = true;
+    				}
+    			}
+    			if (!attack)
+    				dudes[gm.dudeMoving()].move(lastClickedCell);
     			lastClickedCell = new Coord(-1,-1);
     			this.highlightTiles.clear();
     		}
@@ -293,6 +319,7 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
     	dudes = new Dude[1];
     	Texture rickyTexture = new Texture(Gdx.files.internal("gfx/ricky.png"));
     	Dude ricky = new Dude("Ricky", rickyTexture, 25, 3, 25, 50, 75, 7, new Coord(4,2), gm);
+    	ricky.setWeapon(new Weapon(WeaponType.PSIONIC_WILL_LV1));
     	dudes[0] = ricky;
     	
     }
@@ -300,11 +327,11 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
     public void initializeEnemies(){
     	enemies = new Enemy[3];
     	Texture copTexture = new Texture(Gdx.files.internal("gfx/cop.png"));
-    	Enemy tempCop = new Enemy("Cop1", copTexture, 25, 3, 25, 50, 75, 7, new Coord(6,2));
+    	Enemy tempCop = new Enemy("Cop1", copTexture, 25, 3, 25, 50, 75, 7, new Coord(6,2), new Weapon(WeaponType.PHASE_BLUDGEON_LV1));
     	enemies[0] = tempCop;
-    	tempCop = new Enemy("Cop2", copTexture, 25, 3, 25, 50, 75, 7, new Coord(7,6));
+    	tempCop = new Enemy("Cop2", copTexture, 25, 3, 25, 50, 75, 7, new Coord(7,6), new Weapon(WeaponType.PHASE_BLUDGEON_LV1));
     	enemies[1] = tempCop;
-    	tempCop = new Enemy("Cop3", copTexture, 25, 3, 25, 50, 75, 7, new Coord(3,8));
+    	tempCop = new Enemy("Cop3", copTexture, 25, 3, 25, 50, 75, 7, new Coord(3,8), new Weapon(WeaponType.PHASE_BLUDGEON_LV1));
     	enemies[2] = tempCop;
     }
     

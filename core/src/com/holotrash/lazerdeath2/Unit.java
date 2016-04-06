@@ -9,6 +9,12 @@ public interface Unit {
 	
 	public boolean isDude();
 	
+	public boolean hasMoved();
+	
+	public void setMoved();
+	
+	public void setMovable();
+	
 	public void takeDmg(int dmg);
 	
 	public int hp();

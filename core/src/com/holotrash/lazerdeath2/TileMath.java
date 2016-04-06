@@ -1,18 +1,11 @@
 package com.holotrash.lazerdeath2;
 
-import java.util.ArrayList;
-import java.util.ArrayDeque;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.PriorityQueue;
-
 import org.newdawn.slick.util.pathfinding.AStarPathFinder;
 import org.newdawn.slick.util.pathfinding.Path;
 
 public class TileMath {
-
-	private static final int MOVE_COST = 1;
 	
 	private Map map;
 	private AStarPathFinder pathfinder;

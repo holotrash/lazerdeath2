@@ -31,13 +31,13 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
     
     Dude[] dudes;
     Enemy[] enemies;
+    EnemyAi enemyAi;
     ArrayList<HighlightTile> highlightTiles;
     ArrayList<InteractedTile> interactedTiles;
     boolean highlightOn;
     Color hlColor;
     DialogBox dialogBox;
     BitmapFont dialogFont;
-    ArrayList<String> dialogLines;
     GlyphLayout layout;
     String temp;
     Vector3 tempV3;
@@ -63,9 +63,12 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
 			System.out.println("loading map data failed for level 0");
 			e.printStackTrace();
 		}
-        gm = new GameMaster(this, mapData, dudes, enemies);
+        gm = new GameMaster(this, mapData);
         initializeDudes();
         initializeEnemies();
+        gm.setDudes(this.dudes);
+        gm.setEnemies(this.enemies);
+        enemyAi = new EnemyAi(this.enemies, this.dudes);
         lastClickedCell = new Coord(-1,-1);
         highlightTiles = new ArrayList<HighlightTile>(); 
         highlightOn = false;
@@ -78,10 +81,9 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
         hlColor = Color.WHITE;        
         Gdx.input.setInputProcessor(this);
         dialogBox = new DialogBox();
-        dialogLines = dialogBox.currentMessage();
         dialogFont = new BitmapFont(Gdx.files.internal("fonts/bank.fnt"));
         layout = new GlyphLayout();
-        
+        gm.showLevelStartDialog();
         gm.takeDudesTurn();
     }
 
@@ -142,14 +144,14 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
         	tempV3 = camera.unproject(tempV3);
         	spriteBatch.draw(dialogBox.button(), tempV3.x, tempV3.y);
         	// draw dialog text
-        	int numLines = dialogLines.size();
+        	int numLines = dialogBox.currentMessage().size();
         	if (numLines > 6)
         		numLines = 6;
         	tempV3 = new Vector3(384,150,0);
         	tempV3 = camera.unproject(tempV3);
         	for (int i=0;i<numLines;i++){
         		//dialogFont.draw(spriteBatch, dialogLines.get(i), 384, 625 - (i*50));
-        		dialogFont.draw(spriteBatch, dialogLines.get(i), tempV3.x, tempV3.y -(i*50));
+        		dialogFont.draw(spriteBatch, dialogBox.currentMessage().get(i), tempV3.x, tempV3.y -(i*50));
         	}
         	tempV3 = new Vector3(565,540,0);
         	tempV3 = camera.unproject(tempV3);
@@ -164,8 +166,26 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
         }
         spriteBatch.end();
         
+        
+        // check turn/game state rules
+        if (gm.gameOver()){
+        	//TODO: end game appropriately based on win/loss conditions
+        } else if (gm.dudesTurn()){
+        	if (gm.dudesTurnOver()){
+        		gm.takeEnemiesTurn();
+        	}
+        } else if (gm.enemiesTurn()){
+        	if (gm.enemiesTurnOver()){
+        		gm.takeEnemiesTurn();
+        	}
+        	
+        	if (enemyAi.hasNextEnemy() && enemyAi.nextEnemyReady())
+            		enemyAi.nextEnemyMove();
+        	
+        }
     }
-
+    
+    
     private void makeRangeHighlight(Unit unit) {
     	highlightTiles.clear();
     	HashSet<Coord> tileCoords = gm.unitMoveCoords(unit);
@@ -296,7 +316,6 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
     	dialogBox.setType(di.type());
     	dialogBox.setMapCell(di.mapCoord());
     	
-    	dialogLines = dialogBox.currentMessage();
     	dialogBox.enable();
     }
     
@@ -320,8 +339,15 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
     	System.out.println("Dialog Option 1");
     	if (dialogBox.type() == DialogType.TILE_INTERACTION_DOOR){
     		mapData.openDoor(dialogBox.mapCell());
+    		dialogBox.disable();
+    	} else if (dialogBox.type() == DialogType.CUT_SCENE){
+    		if (dialogBox.hasNextMessage()){
+    			dialogBox.advanceMessage();
+    		} else {
+    			dialogBox.disable();
+    		}
     	}
-    	dialogBox.disable();
+    	
     }
     
     private void executeDialogOption2(){
@@ -329,6 +355,8 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
      	if (dialogBox.type() == DialogType.TILE_INTERACTION_DOOR){
      		dialogBox.disable();
      		
+     	} else if (dialogBox.type() == DialogType.CUT_SCENE){
+     		dialogBox.disable();
      	} else
      		dialogBox.disable();
     }

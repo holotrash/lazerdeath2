@@ -53,11 +53,12 @@ public class DialogBox {
 	
 	public void setMessages(ArrayList<ArrayList<String>> messages){
 		this.messageText = messages;
+		this.messageIndex = 0;
 	}
 	
-	public boolean hasNext(){
+	public boolean hasNextMessage(){
 		boolean returnVal;
-		if (messageIndex < messageText.size())
+		if (messageIndex < messageText.size() - 1)
 			returnVal = true;
 		else
 			returnVal = false;

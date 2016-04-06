@@ -23,11 +23,9 @@ public class GameMaster {
 	private boolean dudesTurn;
 	private boolean enemiesTurn;
 	
-	public GameMaster(lazerdeath2 game, Map mapData, Dude[] dudes, Enemy[] enemies){
+	public GameMaster(lazerdeath2 game, Map mapData){
 		this.game = game;
 		this.mapData = mapData;
-		this.dudes = dudes;
-		this.enemies = enemies;
 		this.dudesWon = false;
 		this.enemiesWon = false;
 		this.dudesTurn = false;
@@ -52,12 +50,26 @@ public class GameMaster {
 			}
 	}
 	
+	public void setDudes(Dude[] dudes){
+		this.dudes = dudes;
+	}
+	
+	public void setEnemies(Enemy[] enemies){
+		this.enemies = enemies;
+	}
+	
+    public void showLevelStartDialog(){
+    	DialogInfo di = dialogLibrarian.getDialogInfo("START");
+    	game.showDialog(di);
+    }
+	
 	public boolean dudesTurn(){
 		return dudesTurn;
 	}
 	
 	public void takeDudesTurn(){
 		dudesTurn = true;
+		enemiesTurn = false;
 	}
 	
 	public boolean enemiesTurn(){
@@ -65,6 +77,7 @@ public class GameMaster {
 	}
 	public void takeEnemiesTurn(){
 		enemiesTurn = true;
+		dudesTurn = false;
 	}
 	
 	public HashSet<Coord> unitMoveCoords(Unit unit){
@@ -95,5 +108,51 @@ public class GameMaster {
 		DialogInfo di = dialogLibrarian.getDialogInfo(lastClickedCell.toString());
 		di.setMapCoord(lastClickedCell);
 		game.showDialog(di);
+	}
+
+	public boolean gameOver() {
+		boolean allDudesDead = true;
+		boolean allEnemiesDead = true;
+		for (Dude dude : dudes){
+			if (!dude.isDead()){
+				allDudesDead = false;
+			}
+		}
+		for (Enemy enemy : enemies){
+			if (!enemy.isDead()){
+				allEnemiesDead = false;
+			}
+		}
+		return allDudesDead || allEnemiesDead;
+	}
+
+	public boolean dudesTurnOver() {
+		boolean allDudesMoved = true;
+		for (Dude dude : dudes){
+			if (!dude.hasMoved())
+				allDudesMoved = false;
+		}
+		return allDudesMoved;
+	}
+
+	public void resetDudesMoved() {
+		for (Dude dude : dudes){
+			dude.setMovable();
+		}
+	}
+
+	public boolean enemiesTurnOver() {
+		boolean allEnemiesMoved = true;
+		for (Enemy enemy : enemies){
+			if (!enemy.hasMoved())
+				allEnemiesMoved = false;
+		}
+		return allEnemiesMoved;
+	}
+
+	public void resetEnemiesMoved() {
+		for (Enemy enemy : enemies){
+			enemy.setMovable();
+		}
 	}
 }

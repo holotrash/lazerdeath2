@@ -10,6 +10,7 @@ public class DialogLibrarian {
 	
 	private Hashtable<String, DialogInfo> dialogs;
 	private static final int LINE_LENGTH = 27;
+	private static final int NUM_LINES = 6;
 	
 	public DialogLibrarian(int level) throws IOException{
 		BufferedReader reader = new BufferedReader(new FileReader("data/level" + (new Integer(level).toString()) + ".dlg"));
@@ -71,20 +72,22 @@ public class DialogLibrarian {
 		String[] split;
 		StringBuilder line = new StringBuilder();
 		int j = 0;
-		
+		int k = 0;
 		for (int i=0;i<messages.size();i++){
 			currentMessage = messages.get(i);
 			split = currentMessage.split(" ");
-			while(j < split.length){
+			j=0;
+			while(j < split.length && k < NUM_LINES){
 				while (j < split.length && line.length() + split[j].length() < LINE_LENGTH){
 					line.append(split[j] + " ");
 					j++;
 				}
-				temp.add(line.toString().trim());
+				temp.add(line.toString());
 				line = new StringBuilder();
+				//k++;
 			}
-			j=0;
 			returnVal.add(temp);
+			temp = new ArrayList<String>();
 		}
 		return returnVal;
 	}

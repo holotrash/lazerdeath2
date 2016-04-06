@@ -18,6 +18,8 @@ public class Dude implements Unit, Mover{
 	private Sprite sprite;
 	private GameMaster gm;
 	
+	private boolean hasMoved;
+	
 	public Dude(String name,
 			    Texture texture, 
 			    int hp, 
@@ -39,6 +41,7 @@ public class Dude implements Unit, Mover{
 		this.range = range;
 		this.position = position;
 		this.gm = gm;
+		this.hasMoved = false;
 	}
 	
 	public Dude() {
@@ -102,14 +105,32 @@ public class Dude implements Unit, Mover{
 
 	@Override
 	public void move(Coord destination) {
-		if (gm.tileMath.unitMoveCoords(this).contains(destination)){
+		if (!this.hasMoved && gm.tileMath.unitMoveCoords(this).contains(destination)){
 			this.position = destination;
 			// TODO play move sound
+			this.hasMoved = true;
 		}
 	}
 	
 	public String name(){
 		return this.name;
+	}
+
+	@Override
+	public boolean hasMoved() {
+		return hasMoved;
+	}
+
+	@Override
+	public void setMoved() {
+		this.hasMoved = true;
+		
+	}
+
+	@Override
+	public void setMovable() {
+		this.hasMoved = false;
+		
 	}
 	
 }

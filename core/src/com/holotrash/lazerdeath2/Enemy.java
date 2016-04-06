@@ -16,6 +16,8 @@ public class Enemy implements Unit, Mover{
 	private Coord position; // position on Map
 	private Sprite sprite;
 	
+	private boolean hasMoved;
+	
 	public Enemy(String name,
 			Texture texture, 
 		    int hp, 
@@ -35,6 +37,7 @@ public class Enemy implements Unit, Mover{
 	this.accuracy = accuracy;
 	this.range = range;
 	this.position = position;
+	this.hasMoved = false;
 	}
 	
 	public void takeDmg(int dmg){
@@ -91,5 +94,21 @@ public class Enemy implements Unit, Mover{
 	
 	public String name(){
 		return name;
+	}
+
+	@Override
+	public boolean hasMoved() {
+		return hasMoved;
+	}
+
+	@Override
+	public void setMoved() {
+		this.hasMoved = true;
+		
+	}
+
+	@Override
+	public void setMovable() {
+		this.hasMoved = false;
 	}
 }

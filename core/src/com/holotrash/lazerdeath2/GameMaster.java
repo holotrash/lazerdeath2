@@ -30,6 +30,7 @@
 package com.holotrash.lazerdeath2;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Random;
@@ -39,14 +40,14 @@ import org.newdawn.slick.util.pathfinding.AStarPathFinder;
 public class GameMaster {
 
 	public Map mapData;
-	private Dude[] dudes;
-	private Enemy[] enemies;
 	public TileMath tileMath;
 	private DialogLibrarian dialogLibrarian;
 	private lazerdeath2 game;
+	private EnemyAi enemyAi;
 	public Random dice;
 	
 	private int clock; // mystic clock bounded between 0 and 3600
+	private int numTurns;
 	
 	// flagz
 	private boolean dudesWon;
@@ -85,6 +86,8 @@ public class GameMaster {
 				e.printStackTrace();
 			}
 		 dice = new Random();
+		 enemyAi = new EnemyAi(this);
+		 numTurns = 0;
 	}
 	
 	public void clockTick(){
@@ -99,14 +102,6 @@ public class GameMaster {
 		return clock;
 	}
 	
-	public void setDudes(Dude[] dudes){
-		this.dudes = dudes;
-	}
-	
-	public void setEnemies(Enemy[] enemies){
-		this.enemies = enemies;
-	}
-	
     public void showLevelStartDialog(){
     	DialogInfo di = dialogLibrarian.getDialogInfo("START");
     	game.showDialog(di);
@@ -119,6 +114,13 @@ public class GameMaster {
 	public void takeDudesTurn(){
 		dudesTurn = true;
 		enemiesTurn = false;
+		for (Dude dude : game.dudes){
+			dude.setMovable();
+			dude.setCanAttack();
+		}
+		this.numTurns++;
+		game.uiConsole.push("Round " + numTurns + ".");
+		game.overlayFadeCounter = game.OVERLAY_FADE_TIME;
 	}
 	
 	public boolean enemiesTurn(){
@@ -127,6 +129,7 @@ public class GameMaster {
 	public void takeEnemiesTurn(){
 		enemiesTurn = true;
 		dudesTurn = false;
+		game.overlayFadeCounter = game.OVERLAY_FADE_TIME;
 	}
 	
 	public HashSet<Coord> unitMoveCoords(Unit unit){
@@ -161,23 +164,45 @@ public class GameMaster {
 
 	public boolean gameOver() {
 		boolean allDudesDead = true;
-		boolean allEnemiesDead = true;
-		for (Dude dude : dudes){
+		for (Dude dude : game.dudes){
 			if (!dude.isDead()){
 				allDudesDead = false;
 			}
 		}
-		for (Enemy enemy : enemies){
-			if (!enemy.isDead()){
-				allEnemiesDead = false;
-			}
-		}
-		return allDudesDead || allEnemiesDead;
+		
+		return allDudesDead || this.gameWon();
 	}
 
+	public boolean gameWon(){
+		boolean winConditionAchieved = false;
+		boolean allEnemiesDead = true;
+		for (WinCondition wc : mapData.winConditions){
+			if (wc.type == WinType.KILL_EVERYONE){
+				for (Enemy e : game.enemies){
+					if (!e.isDead()){
+						allEnemiesDead = false;
+					}
+				}
+				if (allEnemiesDead == true)
+					winConditionAchieved = true;
+			} else if (wc.type == WinType.OCCUPY_MAP_CELL){
+				for (Dude d : game.dudes){
+					if (Coord.coordsEqual(d.position(), wc.mapCoord)){
+						winConditionAchieved = true;
+					}
+				}
+			} else if (wc.type == WinType.SURVIVE_NUM_TURNS){
+				if (this.numTurns > wc.numTurns){
+					winConditionAchieved = true;
+				}
+			}
+		}
+		return winConditionAchieved;
+	}
+	
 	public boolean dudesTurnOver() {
 		boolean allDudesActed = true;
-		for (Dude dude : dudes){
+		for (Dude dude : game.dudes){
 			if (!dude.hasMoved() || !dude.hasAttacked())
 				allDudesActed = false;
 		}
@@ -185,14 +210,14 @@ public class GameMaster {
 	}
 
 	public void resetDudesMoved() {
-		for (Dude dude : dudes){
+		for (Dude dude : game.dudes){
 			dude.setMovable();
 		}
 	}
 
 	public boolean enemiesTurnOver() {
 		boolean allEnemiesMoved = true;
-		for (Enemy enemy : enemies){
+		for (Enemy enemy : game.enemies){
 			if (!enemy.hasMoved() || !enemy.hasAttacked())
 				allEnemiesMoved = false;
 		}
@@ -200,7 +225,7 @@ public class GameMaster {
 	}
 
 	public void resetEnemiesMoved() {
-		for (Enemy enemy : enemies){
+		for (Enemy enemy : game.enemies){
 			enemy.setMovable();
 		}
 	}
@@ -215,5 +240,52 @@ public class GameMaster {
 	
 	public void printToConsole(String output){
 		game.uiConsole.push(output);
+	}
+
+	public void advanceGame() {
+		for (int i=0;i<game.dudes.size();i++){
+			if (game.dudes.get(i).isDead()){
+				//show dude death dialog
+				game.dudes.remove(i);
+			}
+				
+		}
+		for (int i=0;i<game.enemies.size();i++){
+			if (game.enemies.get(i).isDead()){
+				//show dude death dialog
+				game.enemies.remove(i);
+			}
+				
+		}
+		if (this.gameOver()){
+			if (this.gameWon()){
+				game.uiConsole.push("Player Wins!");
+				//TODO: show end level cut scene and advance to next level
+			} else {
+				game.uiConsole.push("GAME OVER.");
+			}
+		}else if (this.dudesTurn){
+			if (this.dudesTurnOver()){
+				this.takeEnemiesTurn();
+			}
+		} else {
+			//advance enemy turn
+			if (this.clock % 100 == 0){
+				if (enemyAi.hasNextEnemy()){
+					enemyAi.nextEnemyMove();
+				} else {
+					this.takeDudesTurn();
+					this.enemyAi.newTurn();
+				}
+			}
+		}
+	}
+	
+	public ArrayList<Dude> dudes(){
+		return game.dudes;
+	}
+	
+	public ArrayList<Enemy> enemies(){
+		return game.enemies;
 	}
 }

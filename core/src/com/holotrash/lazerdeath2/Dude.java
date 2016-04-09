@@ -208,15 +208,20 @@ public class Dude implements Unit, Mover{
 				int damage = weapon.getDamage();
 				unit.takeDmg(damage); 
 				gm.printToConsole(this.name + " hits! " + unit.name() + " takes " + damage + "damage!");
-				System.out.println("Attack hit! " + unit.name() + " takes " + damage + " damage." );
-				gm.printToConsole(unit.name() + " has " + unit.hp() + " hit points remaining.");
-				System.out.println(unit.name() + " has " + unit.hp() + " hit points.");
+				
+				if (unit.hp() > 0){
+					gm.printToConsole(unit.name() + " has " + unit.hp() + " hit points remaining.");
+				} else {
+					gm.printToConsole(this.name + " killed " + unit.name() + "!");
+				}
+				
 			} else {
 				attackHit = false;
-				System.out.println("Attack miss!");
 				gm.printToConsole(this.name + " misses!");
 			}
 			this.hasAttacked = true;
+		} else {
+			gm.printToConsole(this.name + " has already attacked.");
 		}
 		return attackHit;
 	}

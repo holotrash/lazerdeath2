@@ -4,6 +4,8 @@ sdmax #511
 slmax #767
 srmax #769
 maxcel#11,11
+win   #CELL,7,10
+endwin#poopooman
 0,0#F,F,F,F,NULL
 1,0#F,F,F,F,NULL
 2,0#F,F,F,F,NULL

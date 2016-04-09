@@ -26,8 +26,6 @@ package com.holotrash.lazerdeath2;
 
 public class EnemyAi {
 
-	public Enemy[] enemies;
-	public Dude[] dudes;
 	public int enemiesMoved;
 	private GameMaster gm;
 	
@@ -36,30 +34,18 @@ public class EnemyAi {
 	private boolean enemyCovered;
 	private int tempDistance;
 	private int shortestDistance;
-	private int diceRoll;
 	
 	public EnemyAi(GameMaster gm){
 		this.gm = gm;
 		this.enemiesMoved = 0;
 	}
 	
-	public EnemyAi(Enemy[] enemies, Dude[] dudes, GameMaster gm){
-		this.enemies = enemies;
-		this.dudes = dudes;
-		this.enemiesMoved = 0;
-		this.gm = gm;
-	}
-	
-	public void setEnemies(Enemy[] enemies){
-		this.enemies = enemies;
-	}
-
 	public boolean hasNextEnemy() {
-		return this.enemiesMoved < this.enemies.length;
+		return this.enemiesMoved < gm.enemies().size();
 	}
 
 	public void nextEnemyMove() {
-		this.move(enemies[enemiesMoved]);
+		this.move(gm.enemies().get(enemiesMoved));
 		this.enemiesMoved = this.enemiesMoved + 1;
 	}
 
@@ -68,7 +54,7 @@ public class EnemyAi {
 		//determine the closest dude
 		
 		shortestDistance = 10000;
-		for (Dude d : dudes){
+		for (Dude d : gm.dudes()){
 			tempDistance = gm.tileMath.coordDistance(enemy.position(), d.position());
 			if (tempDistance < shortestDistance)
 				shortestDistance = tempDistance;
@@ -93,10 +79,11 @@ public class EnemyAi {
 
 		if (enemyCovered || gm.dice.nextInt(99) < enemy.guts()){
 			//TODO: attack
+			gm.printToConsole("COP WANTS TO ATTACK!");
 			
 		} else {
 			//TODO: seek cover
-			
+			gm.printToConsole("COP WANTS TO HIDE!");
 		}
 		
 	}

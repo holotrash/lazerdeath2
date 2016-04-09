@@ -1,8 +1,8 @@
 /**
- *  Coord.java
+ *  WinType.java
  *  ----  
- *  Represents a 2D coordinate. Could be a coordinate on a grid of pixels
- *  or a grid of map cells depending on the context.
+ *  An enum of all the kinds of win conditions there might be for a 
+ *  level.
  *  ---------------------------------------------------------------------
  *  This file is part of the computer game Lazerdeath2 
  *  Copyright 2016, Robert Watson Craig III
@@ -22,59 +22,10 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with Lazerdeath2.  If not, see <http://www.gnu.org/licenses/>.
- * 
  */
-
 package com.holotrash.lazerdeath2;
 
-public class Coord {
+public enum WinType {
 
-	private int x;
-	private int y;
-	
-	public Coord(int x, int y){
-		this.x = x;
-		this.y = y;
-	}
-	
-	public int x(){
-		return x;
-	}
-	
-	public int y(){
-		return y;
-	}
-	
-	@Override
-	public boolean equals(Object other){
-		boolean returnVal;
-		if (other == null) {
-			returnVal = false;
-		} else if (this.getClass() != other.getClass())
-			returnVal = false;
-		else if(((Coord)other).x() == this.x && ((Coord)other).y() == this.y){
-			returnVal = true;
-		} else {
-			returnVal = false;
-		}
-		return returnVal;
-	}
-	
-	@Override
-	public int hashCode(){
-		final int PRIME1 = 31;
-		final int PRIME2 = 7;
-	    int result;
-	    result = (PRIME1 * y) + (PRIME2 * x); 
-	    return result;
-	}
-	
-	@Override
-	public String toString(){
-		return Integer.toString(x) + "," + Integer.toString(y);
-	}
-	
-	public static boolean coordsEqual(Coord c1, Coord c2){
-		return c1.x() == c2.x() && c1.y() == c2.y();
-	}
+	OCCUPY_MAP_CELL, KILL_EVERYONE, SURVIVE_NUM_TURNS
 }

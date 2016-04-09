@@ -61,15 +61,16 @@ import com.badlogic.gdx.math.Vector3;
 public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
     
 	public static final int OVERLAY_FADE_TIME = 90;
+	public static final int SCROLLING_MULTIPLIER = 3;
 	
     TiledMap tiledMap;
     OrthographicCamera camera;
     OrthogonalTiledMapRenderer tiledMapRenderer;
 
     
-    Dude[] dudes;
-    Enemy[] enemies;
-    EnemyAi enemyAi;
+    ArrayList<Dude> dudes;
+    ArrayList<Enemy> enemies;
+    
     ArrayList<HighlightTile> highlightTiles;
     ArrayList<InteractedTile> interactedTiles;
     boolean highlightOn;
@@ -93,6 +94,7 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
     Sprite enemiesTurnSprite;
     Sprite leftStatusBox;
     Sprite rightStatusBox;
+    Sprite rightStatusBoxFade;
     Sprite glamourShot;
     Sprite defaultGlamourShot;
     
@@ -101,6 +103,11 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
     Iterator<String> consoleIterator;
     
     int overlayFadeCounter;
+    
+    boolean scrollingUp = false;
+    boolean scrollingDown = false;
+    boolean scrollingLeft = false;
+    boolean scrollingRight = false;
         
     @Override
     public void create () {
@@ -119,9 +126,7 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
         gm = new GameMaster(this, mapData);
         initializeDudes();
         initializeEnemies();
-        gm.setDudes(this.dudes);
-        gm.setEnemies(this.enemies);
-        enemyAi = new EnemyAi(this.enemies, this.dudes, this.gm);
+        
         lastClickedCell = new Coord(-1,-1);
         highlightTiles = new ArrayList<HighlightTile>(); 
         highlightOn = false;
@@ -131,6 +136,7 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
         enemiesTurnSprite = new Sprite(new Texture(Gdx.files.internal("gfx/enemy_turn.png")));
         this.leftStatusBox = new Sprite(new Texture(Gdx.files.internal("gfx/left_status_box.png")));
         this.rightStatusBox = new Sprite(new Texture(Gdx.files.internal("gfx/right_status_box.png")));
+        this.rightStatusBoxFade = new Sprite(new Texture(Gdx.files.internal("gfx/right_status_box_fade_out.png")));
         this.defaultGlamourShot = new Sprite(new Texture(Gdx.files.internal("gfx/default_glamourshot.png")));
         this.glamourShot = defaultGlamourShot;
         
@@ -164,6 +170,20 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
         Gdx.gl.glClearColor(1, 0, 0, 1);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+        
+        if (scrollingUp){
+        	camera.translate(0,SCROLLING_MULTIPLIER);
+        }
+        if (scrollingDown){
+        	camera.translate(0, 0-SCROLLING_MULTIPLIER);
+        }
+        if (scrollingLeft){
+        	camera.translate(0-SCROLLING_MULTIPLIER, 0);
+        }
+        if (scrollingRight){
+        	camera.translate(SCROLLING_MULTIPLIER, 0);
+        }
+        
         camera.update();
         tiledMapRenderer.setView(camera);
         tiledMapRenderer.render();
@@ -184,14 +204,14 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
         }
         
         //change states of sprites based on dude/enemy flags here
-        for (int i=0;i<dudes.length;i++){
-        	if(dudes[i].position().equals(lastClickedCell) && gm.dudesTurn()){
-        		makeRangeHighlight(dudes[i]);
+        for (int i=0;i<dudes.size();i++){
+        	if(dudes.get(i).position().equals(lastClickedCell) && gm.dudesTurn()){
+        		makeRangeHighlight(dudes.get(i));
         	}
         }
-        for (int i=0;i<enemies.length;i++){
-        	if(enemies[i].position().equals(lastClickedCell) && gm.dudesTurn()){
-        		makeRangeHighlight(enemies[i]);
+        for (int i=0;i<enemies.size();i++){
+        	if(enemies.get(i).position().equals(lastClickedCell) && gm.dudesTurn()){
+        		makeRangeHighlight(enemies.get(i));
         	}
         }
         
@@ -202,20 +222,17 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
     		spriteBatch.draw(it.sprite, 128*it.position.x(), 128*it.position.y());
     	}
         //draw dudes and enemies
-        for (int i=0;i<dudes.length;i++){
-        	if(!dudes[i].isDead()){
-        		spriteBatch.draw(dudes[i].sprite(),
-        			         128*(dudes[i].position().x()), 
-        			         128*(dudes[i].position().y()));
+        for (int i=0;i<dudes.size();i++){
+        	spriteBatch.draw(dudes.get(i).sprite(),
+        			         128*(dudes.get(i).position().x()), 
+        			         128*(dudes.get(i).position().y()));
         
-        	}
+        	
         }
-        for (int i=0;i<enemies.length;i++){
-        	if(!enemies[i].isDead()){
-        		spriteBatch.draw(enemies[i].sprite(),
-        					 128*(enemies[i].position().x()),
-        				     128*(enemies[i].position().y()));
-        	}
+        for (int i=0;i<enemies.size();i++){
+        	spriteBatch.draw(enemies.get(i).sprite(),
+        					 128*(enemies.get(i).position().x()),
+        				     128*(enemies.get(i).position().y()));
         }
         if (gm.dudesTurn()){
         	spriteBatch.setColor(hlColor);
@@ -246,7 +263,7 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
         				tempV3.y + 182 - (i*32));
         }
         
-        //draw right side ui status console
+        //draw right side ui status console text
         consoleIterator = uiConsole.iterator();
         for (int i=0;i<5;i++){        
         	if (consoleIterator.hasNext())
@@ -255,6 +272,9 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
         				tempV3.x + 832, 
         				tempV3.y + 32 + (i*32));
         }
+        //draw right side ui status console fade out
+        spriteBatch.draw(this.rightStatusBoxFade, tempV3.x + 768, tempV3.y - 64);
+        
         if (dialogBox.enabled()){
         	// draw dialog box
         	tempV3 = new Vector3(286,700,0);
@@ -289,42 +309,21 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
         }
         
         //Text overlay? dudes turn? enemies turn?
-        //TODO: unproject these overlay coordinates
+        tempV3 = new Vector3(0,768,0);
+        tempV3 = camera.unproject(tempV3);
         if (gm.dudesTurn() && this.overlayFadeCounter > 0){
-        	spriteBatch.draw(this.dudesTurnSprite, 350, 275);
+        	spriteBatch.draw(this.dudesTurnSprite, tempV3.x + 350, tempV3.y + 275);
         	overlayFadeCounter--;
         } else if (gm.enemiesTurn() && this.overlayFadeCounter > 0){
-        	spriteBatch.draw(this.enemiesTurnSprite, 350, 275);
+        	spriteBatch.draw(this.enemiesTurnSprite, tempV3.x + 350, tempV3.y + 275);
         	overlayFadeCounter--;
         }
         
-        
-        
-        
-        
         spriteBatch.end();
-        
-        
-        // check turn/game state rules
-        if (gm.gameOver()){
-        	//TODO: end game appropriately based on win/loss conditions
-        } else if (gm.dudesTurn()){
-        	if (gm.dudesTurnOver()){
-        		gm.takeEnemiesTurn();
-        		this.overlayFadeCounter = OVERLAY_FADE_TIME;
-        	}
-        } else if (gm.enemiesTurn()){
-        	if (gm.enemiesTurnOver()){
-        		gm.takeEnemiesTurn();
-        		this.overlayFadeCounter = OVERLAY_FADE_TIME;
-        	}
         	
-        	if (enemyAi.hasNextEnemy() && enemyAi.nextEnemyReady())
-            		enemyAi.nextEnemyMove();
-        	
-        }
-        
         gm.clockTick();
+        gm.advanceGame();
+        
     } // end render()
     
     
@@ -344,7 +343,11 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
 
 	@Override
     public boolean keyDown(int keycode) {
-    	if(keycode == Input.Keys.LEFT && camera.position.x > 767){
+    
+		// now scrolling is done with the mouse
+		
+		/**
+		if(keycode == Input.Keys.LEFT && camera.position.x > 767){
             camera.translate(-128,0);
         }
         if(keycode == Input.Keys.RIGHT && camera.position.x < 769){
@@ -356,6 +359,7 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
         if(keycode == Input.Keys.DOWN && camera.position.y > 511){
             camera.translate(0,-128);
         }
+        **/
     	return false;
     }
 
@@ -386,7 +390,7 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
     		if (gm.dudesMoving()){ // dudes are responsible for limiting their own movement and attack
     			//if lastClickedCell contains a unit, attempt to attack.
     			// otherwise attempt to move
-    			Dude dudeMoving = dudes[gm.dudeMoving()];
+    			Dude dudeMoving = dudes.get(gm.dudeMoving());
     			boolean attack = false;
     			for (Dude dude : dudes){
     				if (dude.position().equals(lastClickedCell)){
@@ -405,13 +409,13 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
     				}
     			}
     			if (!attack)
-    				dudes[gm.dudeMoving()].move(lastClickedCell);
+    				dudes.get(gm.dudeMoving()).move(lastClickedCell);
     			lastClickedCell = new Coord(-1,-1);
     			this.highlightTiles.clear();
     		}
     		boolean dudesMoving = false;
-    		for (int i=0;i<dudes.length;i++){
-    			if (dudes[i].position().equals(lastClickedCell)){
+    		for (int i=0;i<dudes.size();i++){
+    			if (dudes.get(i).position().equals(lastClickedCell)){
     				dudesMoving = true;
     				gm.setDudeMoving(i);
     			}
@@ -444,7 +448,29 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
 
     @Override
     public boolean mouseMoved(int screenX, int screenY) {
-        return false;
+        if (screenX < 10 && camera.position.x > 767){
+        	scrollingLeft = true;
+        	//camera.translate(-1,0);
+        } else {
+        	scrollingLeft = false;
+        }
+        if(screenX > 1014 && camera.position.x < 769){
+            scrollingRight = true;
+        } else {
+        	scrollingRight = false;
+        }
+        if(screenY < 10 && camera.position.y < 1025){
+            scrollingUp = true;
+        } else {
+        	scrollingUp = false;
+        }
+        if(screenY > 700 && camera.position.y > 511){
+            scrollingDown = true;
+        } else {
+        	scrollingDown = false;
+        }
+    	
+    	return false;
     }
 
     @Override
@@ -453,25 +479,34 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
     }
 
     public void initializeDudes(){
-    	dudes = new Dude[1];
+    	dudes = new ArrayList<Dude>();
     	Texture rickyTexture = new Texture(Gdx.files.internal("gfx/ricky.png"));
     	Sprite glamourShot = new Sprite(new Texture(Gdx.files.internal("gfx/dude_glamourshot.png")));
     	Dude ricky = new Dude("Ricky", rickyTexture, 25, 3, 25, 50, 75, new Coord(4,2), gm, glamourShot);
     	ricky.setWeapon(new Weapon(WeaponType.PSIONIC_WILL_LV1));
-    	dudes[0] = ricky;
-    	
+    	dudes.add(ricky);
     }
     
     public void initializeEnemies(){
-    	enemies = new Enemy[3];
+    	enemies = new ArrayList<Enemy>();
     	Texture copTexture = new Texture(Gdx.files.internal("gfx/cop.png"));
     	Sprite copGlamourShot = new Sprite(new Texture(Gdx.files.internal("gfx/cop_glamourshot.png")));
-    	Enemy tempCop = new Enemy("Cop1", copTexture, 25, 3, 25, 50, 75, 7, 15, 75, new Coord(6,2), new Weapon(WeaponType.PHASE_BLUDGEON_LV1), copGlamourShot);
-    	enemies[0] = tempCop;
-    	tempCop = new Enemy("Cop2", copTexture, 25, 3, 25, 50, 75, 7, 25, 85, new Coord(7,6), new Weapon(WeaponType.PHASE_BLUDGEON_LV1), copGlamourShot);
-    	enemies[1] = tempCop;
-    	tempCop = new Enemy("Cop3", copTexture, 25, 3, 25, 50, 75, 7, 10, 64, new Coord(3,8), new Weapon(WeaponType.PHASE_BLUDGEON_LV1), copGlamourShot);
-    	enemies[2] = tempCop;
+    	
+    	enemies.add(new Enemy("Cop1", 
+    			copTexture, 25, 3, 25, 50, 75, 7, 15, 75, 
+    			new Coord(6,2), 
+    			new Weapon(WeaponType.PHASE_BLUDGEON_LV1), 
+    			copGlamourShot));
+    	enemies.add(new Enemy("Cop2", 
+    			copTexture, 25, 3, 25, 50, 75, 7, 25, 85, 
+    			new Coord(7,6), 
+    			new Weapon(WeaponType.PHASE_BLUDGEON_LV1), 
+    			copGlamourShot));
+    	enemies.add(new Enemy("Cop3", 
+    			copTexture, 25, 3, 25, 50, 75, 7, 10, 64, 
+    			new Coord(3,8), 
+    			new Weapon(WeaponType.PHASE_BLUDGEON_LV1), 
+    			copGlamourShot));
     }
     
     public void showDialog(DialogInfo di){

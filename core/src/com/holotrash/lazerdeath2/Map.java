@@ -34,6 +34,7 @@ package com.holotrash.lazerdeath2;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import org.newdawn.slick.util.pathfinding.*;
 
@@ -46,7 +47,8 @@ public class Map implements TileBasedMap{
 	public int scrollRightMax;
 	public Coord maxCell;          // map dimensions defined by the cell with the maximum x and y value
 	public HashMap<Coord, MapCell> mapData;
-	private lazerdeath2 game;
+	public ArrayList<WinCondition> winConditions;
+	private lazerdeath2 game;	
 	
 	private Coord aCoord;
 	
@@ -54,6 +56,7 @@ public class Map implements TileBasedMap{
 	public Map(int level, lazerdeath2 game) throws IOException{
 		this.game = game;
 		mapData = new HashMap<Coord, MapCell>();
+		this.winConditions = new ArrayList<WinCondition>();
 		@SuppressWarnings("resource")
 		BufferedReader reader = new BufferedReader(new FileReader("data/level" + (new Integer(level).toString()) + ".lvl"));
 		String[] coordSplit;
@@ -87,6 +90,24 @@ public class Map implements TileBasedMap{
 		dataSplit = split[1].split(",");
 		this.maxCell = new Coord(Integer.parseInt(dataSplit[0]), Integer.parseInt(dataSplit[1]));
 		
+		//read win conditions
+		line = reader.readLine();
+		split = line.split("#");
+		while(!split[0].equals("endwin")){
+			split = split[1].split(",");
+			if (split[0].equals("CELL")){
+				aCoord = new Coord(Integer.parseInt(split[1]),Integer.parseInt(split[2]));
+				this.winConditions.add(new WinCondition(WinType.OCCUPY_MAP_CELL, aCoord));
+			} else if (split[0].equals("KILLALL")){
+				this.winConditions.add(new WinCondition(WinType.KILL_EVERYONE));
+			} else if (split[0].equals("SURVIVE")){
+				this.winConditions.add(new WinCondition(WinType.SURVIVE_NUM_TURNS, Integer.parseInt(split[1])));
+			} else {
+				throw new IOException ("BULLSHIT WIN CONDITION TYPE IDENTIFIER IN MAP DATA FILE, NUMBNUTS!!! should be CELL, KILLALL, or SURVIVE");
+			}
+			line = reader.readLine();
+			split = line.split("#");
+		}
 		//read map cells
 		
 		while ((line = reader.readLine()) != null){

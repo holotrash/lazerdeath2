@@ -1,8 +1,8 @@
 tmxfile#lv00-lazerjail
 sumax #1025
-sdmax #511
-slmax #767
-srmax #769
+sdmax #300
+slmax #600
+srmax #825
 maxcel#11,11
 win   #CELL,7,10
 endwin#poopooman

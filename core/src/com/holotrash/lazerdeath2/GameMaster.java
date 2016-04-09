@@ -39,6 +39,8 @@ import org.newdawn.slick.util.pathfinding.AStarPathFinder;
 
 public class GameMaster {
 
+	public final static int ENEMY_MOVE_LENGTH = 30;
+	
 	public Map mapData;
 	public TileMath tileMath;
 	private DialogLibrarian dialogLibrarian;
@@ -266,11 +268,15 @@ public class GameMaster {
 			}
 		}else if (this.dudesTurn){
 			if (this.dudesTurnOver()){
-				this.takeEnemiesTurn();
+				if(game.enemies.size() > 0){
+					this.takeEnemiesTurn();
+				} else {
+					this.takeDudesTurn();
+				}
 			}
 		} else {
 			//advance enemy turn
-			if (this.clock % 100 == 0){
+			if (this.clock % ENEMY_MOVE_LENGTH == 0){
 				if (enemyAi.hasNextEnemy()){
 					enemyAi.nextEnemyMove();
 				} else {

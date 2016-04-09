@@ -61,7 +61,7 @@ import com.badlogic.gdx.math.Vector3;
 public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
     
 	public static final int OVERLAY_FADE_TIME = 90;
-	public static final int SCROLLING_MULTIPLIER = 3;
+	public static final int SCROLLING_MULTIPLIER = 500;
 	
     TiledMap tiledMap;
     OrthographicCamera camera;
@@ -108,6 +108,8 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
     boolean scrollingDown = false;
     boolean scrollingLeft = false;
     boolean scrollingRight = false;
+    
+    float delta;
         
     @Override
     public void create () {
@@ -167,21 +169,22 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
 
     @Override
     public void render () {
-        Gdx.gl.glClearColor(1, 0, 0, 1);
+    	delta = Gdx.graphics.getDeltaTime();
+        Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         
-        if (scrollingUp){
-        	camera.translate(0,SCROLLING_MULTIPLIER);
+        if (scrollingUp && camera.position.y < mapData.scrollUpMax){
+        	camera.translate(0,SCROLLING_MULTIPLIER*delta);
         }
-        if (scrollingDown){
-        	camera.translate(0, 0-SCROLLING_MULTIPLIER);
+        if (scrollingDown && camera.position.y > mapData.scrollDownMax){
+        	camera.translate(0, (0-SCROLLING_MULTIPLIER)*delta);
         }
-        if (scrollingLeft){
-        	camera.translate(0-SCROLLING_MULTIPLIER, 0);
+        if (scrollingLeft && camera.position.x > mapData.scrollLeftMax){
+        	camera.translate((0-SCROLLING_MULTIPLIER)*delta, 0);
         }
-        if (scrollingRight){
-        	camera.translate(SCROLLING_MULTIPLIER, 0);
+        if (scrollingRight && camera.position.x < mapData.scrollRightMax){
+        	camera.translate(SCROLLING_MULTIPLIER*delta, 0);
         }
         
         camera.update();
@@ -454,17 +457,17 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
         } else {
         	scrollingLeft = false;
         }
-        if(screenX > 1014 && camera.position.x < 769){
+        if(screenX > 1014){
             scrollingRight = true;
         } else {
         	scrollingRight = false;
         }
-        if(screenY < 10 && camera.position.y < 1025){
+        if(screenY < 10){
             scrollingUp = true;
         } else {
         	scrollingUp = false;
         }
-        if(screenY > 700 && camera.position.y > 511){
+        if(screenY > 700){
             scrollingDown = true;
         } else {
         	scrollingDown = false;

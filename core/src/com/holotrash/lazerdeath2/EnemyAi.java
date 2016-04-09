@@ -2,6 +2,7 @@
  *  EnemyAi.java
  *  ----  
  *  Hive-mind of the Enemy. The Enemy is compelled to obey the EnemyAi's will.
+ *  The EnemyAi's gaze controls the camera during the Enemy's turn.
  *  ---------------------------------------------------------------------
  *  This file is part of the computer game Lazerdeath2 
  *  Copyright 2016, Robert Watson Craig III
@@ -86,11 +87,6 @@ public class EnemyAi {
 			gm.printToConsole("COP WANTS TO HIDE!");
 		}
 		
-	}
-
-	public boolean nextEnemyReady() {
-		// TODO human-generated method stub
-		return this.hasNextEnemy();
 	}
 	
 	public void newTurn(){

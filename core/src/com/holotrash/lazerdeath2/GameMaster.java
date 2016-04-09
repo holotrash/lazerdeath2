@@ -1,8 +1,38 @@
+/**
+ *  GameMaster.java
+ *  ----  
+ *  Represents an essential force in the in-game universe that dictates 
+ *  the happenings in-game. I don't think the GameMaster is like, an old
+ *  white dude with a big beard that plays a harp in the clouds or something, 
+ *  but I think, you know, we keep taking these turns and fighting these
+ *  bad guys and opening doors and all this, and, you know, I just think 
+ *  there has to be something out there. You know what I mean, man?
+ *  ---------------------------------------------------------------------
+ *  This file is part of the computer game Lazerdeath2 
+ *  Copyright 2016, Robert Watson Craig III
+ *
+ *  Lazerdeath2 is free software published under the terms of the GNU
+ *  General Public License version 3. You can redistribute it and/or 
+ *  modify it under the terms of the GPL (version 3 or any later version).
+ * 
+ *  Lazerdeath2 is distributed in the hope that it will be entertaining,
+ *  cool, and totally smooth for your mind to rock to, daddy, but WITHOUT 
+ *  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or 
+ *  FITNESS FOR A PARTICULAR PURPOSE; without even the suggestion of an
+ *  implication that any of this code makes any sense whatsoever. It works
+ *  on my computer and I don't think that's such a weird environment, but
+ *  it might be. Or maybe it's your computer that's the weird one, did you
+ *  ever think of that?  See the GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with Lazerdeath2.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package com.holotrash.lazerdeath2;
 
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.Random;
 
 import org.newdawn.slick.util.pathfinding.AStarPathFinder;
 
@@ -14,16 +44,21 @@ public class GameMaster {
 	public TileMath tileMath;
 	private DialogLibrarian dialogLibrarian;
 	private lazerdeath2 game;
+	public Random dice;
+	
+	private int clock; // mystic clock bounded between 0 and 3600
 	
 	// flagz
 	private boolean dudesWon;
 	private boolean enemiesWon;
 	private boolean dudesMoving;
+	private boolean sceneMovement;
 	private int dudeMoving;
 	private boolean dudesTurn;
 	private boolean enemiesTurn;
 	
 	public GameMaster(lazerdeath2 game, Map mapData){
+		this.clock = 0;
 		this.game = game;
 		this.mapData = mapData;
 		this.dudesWon = false;
@@ -31,6 +66,7 @@ public class GameMaster {
 		this.dudesTurn = false;
 		this.enemiesTurn = false;
 		this.dudesMoving = false;
+		this.sceneMovement = false;
 		this.dudeMoving = -1;
 		int width = mapData.maxCell.x();
 		int height = mapData.maxCell.y();
@@ -48,6 +84,19 @@ public class GameMaster {
 				System.out.println("Error loading Dialog Librarian for level 0");
 				e.printStackTrace();
 			}
+		 dice = new Random();
+	}
+	
+	public void clockTick(){
+		if (clock < 3600){
+			clock++;
+		} else {
+			clock = 0;
+		}
+	}
+	
+	public int time(){
+		return clock;
 	}
 	
 	public void setDudes(Dude[] dudes){
@@ -154,5 +203,17 @@ public class GameMaster {
 		for (Enemy enemy : enemies){
 			enemy.setMovable();
 		}
+	}
+	
+	public boolean sceneMovement(){
+		return this.sceneMovement;
+	}
+	
+	public void setSceneMovement(boolean status){
+		this.sceneMovement = status;
+	}
+	
+	public void printToConsole(String output){
+		game.uiConsole.push(output);
 	}
 }

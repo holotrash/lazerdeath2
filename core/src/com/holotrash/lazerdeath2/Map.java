@@ -1,3 +1,34 @@
+/**
+ *  Map.java
+ *  ----  
+ *  A self-loading map. Contains information about the cells on the map
+ *  such as if it is traversable, occupied, interactable, cover, etc.
+ *  
+ *  Implements the Slick2D java game library's TileBasedMap interface so 
+ *  that Map can be used with the Slick A* pathfinder. 
+ *  http://slick.ninjacave.com/
+ *  ---------------------------------------------------------------------
+ *  This file is part of the computer game Lazerdeath2 
+ *  Copyright 2016, Robert Watson Craig III
+ *
+ *  Lazerdeath2 is free software published under the terms of the GNU
+ *  General Public License version 3. You can redistribute it and/or 
+ *  modify it under the terms of the GPL (version 3 or any later version).
+ * 
+ *  Lazerdeath2 is distributed in the hope that it will be entertaining,
+ *  cool, and totally smooth for your mind to rock to, daddy, but WITHOUT 
+ *  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or 
+ *  FITNESS FOR A PARTICULAR PURPOSE; without even the suggestion of an
+ *  implication that any of this code makes any sense whatsoever. It works
+ *  on my computer and I don't think that's such a weird environment, but
+ *  it might be. Or maybe it's your computer that's the weird one, did you
+ *  ever think of that?  See the GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with Lazerdeath2.  If not, see <http://www.gnu.org/licenses/>.
+ * 
+ */
+
 package com.holotrash.lazerdeath2;
 
 import java.io.BufferedReader;
@@ -9,13 +40,15 @@ import org.newdawn.slick.util.pathfinding.*;
 public class Map implements TileBasedMap{
 
 	public String tmxFileName;
-	public int scrollUpMax;
+	public int scrollUpMax;        // TODO: lazerdeath2 must use these values rather than hardcoded ones
 	public int scrollDownMax;
 	public int scrollLeftMax;
 	public int scrollRightMax;
 	public Coord maxCell;          // map dimensions defined by the cell with the maximum x and y value
 	public HashMap<Coord, MapCell> mapData;
 	private lazerdeath2 game;
+	
+	private Coord aCoord;
 	
 	/* constructor */
 	public Map(int level, lazerdeath2 game) throws IOException{
@@ -103,7 +136,8 @@ public class Map implements TileBasedMap{
 			if (interactable){
 				System.out.println("adding interactable tile at Coord (" + Integer.parseInt(coordSplit[0]) + "," + Integer.parseInt(coordSplit[1]) + ")");
 			}
-			mapData.put(new Coord(Integer.parseInt(coordSplit[0]),Integer.parseInt(coordSplit[1])), new MapCell(traversable, cover, interactable, door, region));
+			aCoord = new Coord(Integer.parseInt(coordSplit[0]), Integer.parseInt(coordSplit[1]));
+			mapData.put(aCoord, new MapCell(aCoord, traversable, cover, interactable, door, region));
 			
 		} // end while
 		reader.close();

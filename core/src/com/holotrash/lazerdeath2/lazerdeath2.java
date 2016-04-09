@@ -1,13 +1,49 @@
-package com.holotrash.lazerdeath2;
+/**
+ *  lazerdeath2.java
+ *  -------
+ *  This file is just a mess. It aims to be the game in some sense. 
+ *  
+ *  In future versions, it would be nice to abstract some of its 
+ *  behaviors away from it into other classes to make this class 
+ *  less cluttered and more focused on just executing the game
+ *  loop in a clean and comprehensible way. For instance, there 
+ *  really ought to be a separate InputProcessor. 
+ *  
+ *  Right now I just want to get this thing working in some form.
+ *  --------------------------------------------------------------------  
+ *  This file is part of the computer game Lazerdeath2 
+ *  Copyright 2016, Robert Watson Craig III
+ *
+ *  Lazerdeath2 is free software published under the terms of the GNU
+ *  General Public License version 3. You can redistribute it and/or 
+ *  modify it under the terms of the GPL (version 3 or any later version).
+ * 
+ *  Lazerdeath2 is distributed in the hope that it will be entertaining,
+ *  cool, and totally smooth for your mind to rock to, daddy, but WITHOUT 
+ *  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or 
+ *  FITNESS FOR A PARTICULAR PURPOSE; without even the suggestion of an
+ *  implication that any of this code makes any sense whatsoever. It works
+ *  on my computer and I don't think that's such a weird environment, but
+ *  it might be. Or maybe it's your computer that's the weird one, did you
+ *  ever think of that?  See the GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with Lazerdeath2.  If not, see <http://www.gnu.org/licenses/>.
+ * 
+ */
 
+package com.holotrash.lazerdeath2;
 
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.GlyphLayout;
+import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 import java.io.IOException;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
@@ -24,6 +60,8 @@ import com.badlogic.gdx.math.Vector3;
 
 public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
     
+	public static final int OVERLAY_FADE_TIME = 90;
+	
     TiledMap tiledMap;
     OrthographicCamera camera;
     OrthogonalTiledMapRenderer tiledMapRenderer;
@@ -38,6 +76,7 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
     Color hlColor;
     DialogBox dialogBox;
     BitmapFont dialogFont;
+    BitmapFont uiFont;
     GlyphLayout layout;
     String temp;
     Vector3 tempV3;
@@ -46,8 +85,22 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
     SpriteBatch spriteBatch;
     SpriteBatch highlightBatch;
     Coord lastClickedCell;
-    GameMaster gm;
+    Unit selectedUnit;
     
+    GameMaster gm;
+
+    Sprite dudesTurnSprite;
+    Sprite enemiesTurnSprite;
+    Sprite leftStatusBox;
+    Sprite rightStatusBox;
+    Sprite glamourShot;
+    Sprite defaultGlamourShot;
+    
+    ArrayList<String> currentUnitStats;
+    ArrayDeque<String> uiConsole;
+    Iterator<String> consoleIterator;
+    
+    int overlayFadeCounter;
         
     @Override
     public void create () {
@@ -68,11 +121,18 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
         initializeEnemies();
         gm.setDudes(this.dudes);
         gm.setEnemies(this.enemies);
-        enemyAi = new EnemyAi(this.enemies, this.dudes);
+        enemyAi = new EnemyAi(this.enemies, this.dudes, this.gm);
         lastClickedCell = new Coord(-1,-1);
         highlightTiles = new ArrayList<HighlightTile>(); 
         highlightOn = false;
         interactedTiles = new ArrayList<InteractedTile>();
+        
+        dudesTurnSprite = new Sprite(new Texture(Gdx.files.internal("gfx/dudes_turn.png")));
+        enemiesTurnSprite = new Sprite(new Texture(Gdx.files.internal("gfx/enemy_turn.png")));
+        this.leftStatusBox = new Sprite(new Texture(Gdx.files.internal("gfx/left_status_box.png")));
+        this.rightStatusBox = new Sprite(new Texture(Gdx.files.internal("gfx/right_status_box.png")));
+        this.defaultGlamourShot = new Sprite(new Texture(Gdx.files.internal("gfx/default_glamourshot.png")));
+        this.glamourShot = defaultGlamourShot;
         
         tiledMap = new TmxMapLoader().load("gfx/" + mapData.tmxFileName + ".tmx");
         spriteBatch = new SpriteBatch();
@@ -82,9 +142,21 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
         Gdx.input.setInputProcessor(this);
         dialogBox = new DialogBox();
         dialogFont = new BitmapFont(Gdx.files.internal("fonts/bank.fnt"));
+        uiFont = new BitmapFont(Gdx.files.internal("fonts/hack.fnt"));
         layout = new GlyphLayout();
         gm.showLevelStartDialog();
-        gm.takeDudesTurn();
+        selectedUnit = null;
+        
+        currentUnitStats = new ArrayList<String>();
+        currentUnitStats.add("SELECT A UNIT TO");
+        currentUnitStats.add("BEGIN PERPETUATING");
+        currentUnitStats.add("THE CYCLE OF");
+        currentUnitStats.add("VIOLENCE");
+        currentUnitStats.add("...");
+        
+        uiConsole = new ArrayDeque<String>();
+        uiConsole.push("Battle start...");
+        
     }
 
     @Override
@@ -96,6 +168,20 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
         tiledMapRenderer.setView(camera);
         tiledMapRenderer.render();
         tiledMapRenderer.getBatch().setProjectionMatrix(camera.combined);
+        for (Enemy enemy : enemies){
+        	if (enemy.position().equals(lastClickedCell)){
+        		selectedUnit = enemy;
+        		System.out.println("selectedUnit equals enemy: " + enemy.name());
+        	}
+        	
+        }
+        
+        for (Dude dude : dudes){
+        	if (dude.position().equals(lastClickedCell)){
+				selectedUnit = dude;
+        		System.out.println("selectedUnit equals dude: " + dude.name());
+        	}
+        }
         
         //change states of sprites based on dude/enemy flags here
         for (int i=0;i<dudes.length;i++){
@@ -110,6 +196,7 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
         }
         
         spriteBatch.begin();
+   
         //draw interacted tiles
         for (InteractedTile it : interactedTiles){
     		spriteBatch.draw(it.sprite, 128*it.position.x(), 128*it.position.y());
@@ -136,6 +223,37 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
         		spriteBatch.draw(hlt.sprite, 128*hlt.position.x(), 128*hlt.position.y());
         	}
         	spriteBatch.setColor(Color.WHITE);
+        }
+        // draw left status dialog stuff
+        if (this.selectedUnit != null){
+        	this.glamourShot = selectedUnit.glamourShot();
+        	this.currentUnitStats = selectedUnit.toStringz();
+        	// change left status box text to relevant unit stats:
+        	
+        }
+        
+        tempV3 = new Vector3(0,768,0);
+        tempV3 = camera.unproject(tempV3);
+        spriteBatch.draw(this.leftStatusBox, tempV3.x, tempV3.y);
+        spriteBatch.draw(this.rightStatusBox, tempV3.x + 768, tempV3.y - 64);
+        spriteBatch.draw(this.glamourShot, tempV3.x, tempV3.y);
+        uiFont.setColor(Color.BLACK);
+        for (int i=0;i<5;i++){        
+        	if (currentUnitStats.size() > i)
+        		uiFont.draw(spriteBatch, 
+        				currentUnitStats.get(i),
+        				tempV3.x + 266, 
+        				tempV3.y + 182 - (i*32));
+        }
+        
+        //draw right side ui status console
+        consoleIterator = uiConsole.iterator();
+        for (int i=0;i<5;i++){        
+        	if (consoleIterator.hasNext())
+        		uiFont.draw(spriteBatch, 
+        				consoleIterator.next(),
+        				tempV3.x + 832, 
+        				tempV3.y + 32 + (i*32));
         }
         if (dialogBox.enabled()){
         	// draw dialog box
@@ -169,6 +287,21 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
         	layout.setText(dialogFont, temp);
         	dialogFont.draw(spriteBatch, temp, tempV3.x - layout.width, tempV3.y - layout.height);
         }
+        
+        //Text overlay? dudes turn? enemies turn?
+        //TODO: unproject these overlay coordinates
+        if (gm.dudesTurn() && this.overlayFadeCounter > 0){
+        	spriteBatch.draw(this.dudesTurnSprite, 350, 275);
+        	overlayFadeCounter--;
+        } else if (gm.enemiesTurn() && this.overlayFadeCounter > 0){
+        	spriteBatch.draw(this.enemiesTurnSprite, 350, 275);
+        	overlayFadeCounter--;
+        }
+        
+        
+        
+        
+        
         spriteBatch.end();
         
         
@@ -178,17 +311,21 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
         } else if (gm.dudesTurn()){
         	if (gm.dudesTurnOver()){
         		gm.takeEnemiesTurn();
+        		this.overlayFadeCounter = OVERLAY_FADE_TIME;
         	}
         } else if (gm.enemiesTurn()){
         	if (gm.enemiesTurnOver()){
         		gm.takeEnemiesTurn();
+        		this.overlayFadeCounter = OVERLAY_FADE_TIME;
         	}
         	
         	if (enemyAi.hasNextEnemy() && enemyAi.nextEnemyReady())
             		enemyAi.nextEnemyMove();
         	
         }
-    }
+        
+        gm.clockTick();
+    } // end render()
     
     
     private void makeRangeHighlight(Unit unit) {
@@ -318,7 +455,8 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
     public void initializeDudes(){
     	dudes = new Dude[1];
     	Texture rickyTexture = new Texture(Gdx.files.internal("gfx/ricky.png"));
-    	Dude ricky = new Dude("Ricky", rickyTexture, 25, 3, 25, 50, 75, 7, new Coord(4,2), gm);
+    	Sprite glamourShot = new Sprite(new Texture(Gdx.files.internal("gfx/dude_glamourshot.png")));
+    	Dude ricky = new Dude("Ricky", rickyTexture, 25, 3, 25, 50, 75, new Coord(4,2), gm, glamourShot);
     	ricky.setWeapon(new Weapon(WeaponType.PSIONIC_WILL_LV1));
     	dudes[0] = ricky;
     	
@@ -327,11 +465,12 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
     public void initializeEnemies(){
     	enemies = new Enemy[3];
     	Texture copTexture = new Texture(Gdx.files.internal("gfx/cop.png"));
-    	Enemy tempCop = new Enemy("Cop1", copTexture, 25, 3, 25, 50, 75, 7, new Coord(6,2), new Weapon(WeaponType.PHASE_BLUDGEON_LV1));
+    	Sprite copGlamourShot = new Sprite(new Texture(Gdx.files.internal("gfx/cop_glamourshot.png")));
+    	Enemy tempCop = new Enemy("Cop1", copTexture, 25, 3, 25, 50, 75, 7, 15, 75, new Coord(6,2), new Weapon(WeaponType.PHASE_BLUDGEON_LV1), copGlamourShot);
     	enemies[0] = tempCop;
-    	tempCop = new Enemy("Cop2", copTexture, 25, 3, 25, 50, 75, 7, new Coord(7,6), new Weapon(WeaponType.PHASE_BLUDGEON_LV1));
+    	tempCop = new Enemy("Cop2", copTexture, 25, 3, 25, 50, 75, 7, 25, 85, new Coord(7,6), new Weapon(WeaponType.PHASE_BLUDGEON_LV1), copGlamourShot);
     	enemies[1] = tempCop;
-    	tempCop = new Enemy("Cop3", copTexture, 25, 3, 25, 50, 75, 7, new Coord(3,8), new Weapon(WeaponType.PHASE_BLUDGEON_LV1));
+    	tempCop = new Enemy("Cop3", copTexture, 25, 3, 25, 50, 75, 7, 10, 64, new Coord(3,8), new Weapon(WeaponType.PHASE_BLUDGEON_LV1), copGlamourShot);
     	enemies[2] = tempCop;
     }
     
@@ -367,11 +506,14 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
     	if (dialogBox.type() == DialogType.TILE_INTERACTION_DOOR){
     		mapData.openDoor(dialogBox.mapCell());
     		dialogBox.disable();
-    	} else if (dialogBox.type() == DialogType.CUT_SCENE){
+    	} else if (dialogBox.type() == DialogType.CUT_SCENE_LEVEL_START){
     		if (dialogBox.hasNextMessage()){
     			dialogBox.advanceMessage();
     		} else {
     			dialogBox.disable();
+        		gm.takeDudesTurn();
+                overlayFadeCounter = OVERLAY_FADE_TIME;
+
     		}
     	}
     	
@@ -382,8 +524,11 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
      	if (dialogBox.type() == DialogType.TILE_INTERACTION_DOOR){
      		dialogBox.disable();
      		
-     	} else if (dialogBox.type() == DialogType.CUT_SCENE){
+     	} else if (dialogBox.type() == DialogType.CUT_SCENE_LEVEL_START){
      		dialogBox.disable();
+    		gm.takeDudesTurn();
+            overlayFadeCounter = OVERLAY_FADE_TIME;
+
      	} else
      		dialogBox.disable();
     }

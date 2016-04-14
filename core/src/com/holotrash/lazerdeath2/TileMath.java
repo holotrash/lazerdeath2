@@ -2,6 +2,9 @@
  *  TileMath.java
  *  ----  
  *  Some of history's great figures were polymaths. This is just a TileMath.
+ *  
+ *  bresenhamLine() owes a lot to some example python code by Brian Will:
+ *  https://www.youtube.com/watch?v=IDFB5CDpLDE
  *  ---------------------------------------------------------------------
  *  This file is part of the computer game Lazerdeath2 
  *  Copyright 2016, Robert Watson Craig III
@@ -38,11 +41,13 @@ public class TileMath {
 	private ArrayList<MapCell> coverTiles;
 	private AStarPathFinder pathfinder;
 	private Dude dummyMover;
+	private GameMaster gm;
 	
-	public TileMath(Map map, AStarPathFinder pathfinder){
+	public TileMath(Map map, AStarPathFinder pathfinder, GameMaster gm){
 		this.map = map;
 		this.pathfinder = pathfinder;
 		this.dummyMover = new Dude();
+		this.gm = gm;
 		
 		this.coverTiles = new ArrayList<MapCell>();
 		Coord maxCoord = map.maxCell;
@@ -60,15 +65,15 @@ public class TileMath {
 	}
 
 	//returns the coords a unit is capable of moving to
-	public HashSet<Coord> unitMoveCoords(Unit unit){
-		HashSet<Coord> tempVal = getNeighbors(unit.position(), unit.speed());			
+	public HashSet<Coord> unitMoveCoords(Unit unit, int ap){
+		HashSet<Coord> tempVal = getNeighbors(unit.position(), unit.speed()*ap);			
 		HashSet<Coord> returnVal = new HashSet<Coord>();
 		//for (int i=0;i<returnVal.size();i++)
 		Iterator<Coord>	i = tempVal.iterator();
 		Coord temp;
 		while (i.hasNext()){
 			temp = i.next();
-			if (this.pathExists(unit.position(), temp, unit.speed())){
+			if (this.pathExists(unit.position(), temp, unit.speed()*ap)){
 				returnVal.add(temp);
 			}
 		}
@@ -96,7 +101,6 @@ public class TileMath {
 		return returnVal;
 	}
 	
-	// returns null if no path can be found
 	public boolean pathExists(Coord start, Coord end, int maxMoves){
 		boolean returnVal;
 		Path path =	pathfinder.findPath(dummyMover, start.x(), start.y(), end.x(), end.y());
@@ -134,6 +138,120 @@ public class TileMath {
 	
 	public ArrayList<MapCell> coverTiles(){
 		return coverTiles;
+	}
+
+	public boolean withinAttackRange(Unit attacker, Unit mark) {
+		return this.lineLength(attacker.position(), mark.position()) <= attacker.range();
+	}
+	
+	public int lineLength(Coord start, Coord end){
+		return Math.abs(start.x()-end.x()) + Math.abs(start.y()-end.y());
+	}
+	
+	public Coord closestMoveable(Coord start, Coord end, int range){
+		Coord returnVal;
+		int closerX;
+		int closerY;
+		Path path = pathfinder.findPath(dummyMover, start.x(), start.y(), end.x(), end.y());
+		
+		if (Coord.coordsEqual(start, end)){
+			returnVal = start;
+		} else if (path == null || path.getLength() > range) {
+			
+			if (start.x() < end.x()){
+				closerX = end.x() - 1;
+			} else if (start.x() > end.x()){
+				closerX = end.x() + 1;
+			} else {
+				closerX = end.x();
+			}
+			
+			if (start.y() < end.y()){
+				closerY = end.y() - 1;
+			} else if (start.y() > end.y()) {
+				closerY = end.y() + 1;
+			} else {
+				closerY = end.y();
+			}
+			returnVal = this.closestMoveable(start, 
+					new Coord(closerX, closerY),
+					range);
+			
+		} else {
+			returnVal = end;
+		}
+		return returnVal;
+	}
+
+	public Coord closestReachableCoord(Unit mover, Unit attackTarget) {
+		HashSet<Coord> moveCoords;
+		int distance;
+		int bestDistance = 10000;
+		Path path = this.findPathToAdjacent(mover.position(), attackTarget.position());
+		Coord returnVal;
+		
+		if (path != null){
+			Coord pathEnd = new Coord(path.getX(path.getLength()-1),path.getY(path.getLength()-1));
+			if (path.getLength() <= mover.speed()){
+				returnVal = pathEnd;
+			} else {
+				moveCoords = this.unitMoveCoords(mover, 1);
+				returnVal = new Coord(-1,-1);
+				for (Coord c : moveCoords){
+					distance = this.coordDistance(c, attackTarget.position());
+					if (path.contains(c.x(), c.y()) && distance < bestDistance){
+						bestDistance = distance;
+						returnVal = c;
+					}
+				}
+			}
+		} else {
+			returnVal = new Coord(-2,-2);
+		}
+		return returnVal;
+	}
+	
+	private Path findPathToAdjacent(Coord start, Coord end){
+		int x0 = end.x() + 1;
+		int y0 = end.y();
+		int x1 = end.x() - 1;
+		int y1 = end.y();
+		int x2 = end.x();
+		int y2 = end.y() + 1;
+		int x3 = end.x();
+		int y3 = end.y() - 1;
+		
+		ArrayList<Path> paths = new ArrayList<Path>();
+		Path path = null;
+		
+		paths.add(this.pathfinder.findPath(dummyMover, start.x(), start.y(), x0, y0));
+		paths.add(this.pathfinder.findPath(dummyMover, start.x(), start.y(), x1, y1));
+		paths.add(this.pathfinder.findPath(dummyMover, start.x(), start.y(), x2, y2));
+		paths.add(this.pathfinder.findPath(dummyMover, start.x(), start.y(), x3, y3));
+		
+		for (Path p : paths){
+			if (p != null && (path == null || p.getLength() < path.getLength())){
+				path = p;
+			}
+		}
+		return path;
+		
+	}
+	
+	public HashSet<Unit> unitsWithinAttackRange(Unit attacker){
+		HashSet<Unit> result = new HashSet<Unit>();
+		
+		for (Dude dude : gm.dudes()){
+			if (this.withinAttackRange(attacker, dude)){
+				result.add(dude);
+			}
+		}
+		for (Enemy enemy : gm.enemies()){
+			if (this.withinAttackRange(attacker, enemy)){
+				result.add(enemy);
+			}
+		}
+		return result;
 	}
 	
 }

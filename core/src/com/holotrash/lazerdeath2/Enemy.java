@@ -41,11 +41,11 @@ public class Enemy implements Unit, Mover{
 	// statistics
 	
 	private int hp;       // hit points
+	private int ap;
 	private int speed;    // number of tiles that a Dude can move per turn
 	private int strength;
 	private int dodge;    // percent chance to avoid attack (unmodified by opponent's accuracy)
 	private int accuracy; // percent chance to hit (unmodified by opponent's dodge)
-	private int range;    // if an opponent is (range) tiles away, he or she can be attacked
 	
 	// personality traits - these inform EnemyAi how to determine action. 
 	//                      each personality trait ranges from 0-99
@@ -66,6 +66,7 @@ public class Enemy implements Unit, Mover{
 	private Random dice;
 	
 	private Weapon weapon;
+	private GameMaster gm;
 	
 	private ArrayList<String> displayStats;
 	
@@ -76,12 +77,12 @@ public class Enemy implements Unit, Mover{
 		    int strength, 
 		    int dodge, 
 		    int accuracy, 
-		    int range,
 		    int jitter,
 		    int guts,
 		    Coord position,
 		    Weapon weapon,
-		    Sprite glamourShot)
+		    Sprite glamourShot,
+		    GameMaster gm)
 	{
 	this.name = name;
 	sprite = new Sprite(texture, 0, 0, 128, 128);
@@ -90,7 +91,6 @@ public class Enemy implements Unit, Mover{
 	this.strength = strength;
 	this.dodge = dodge;
 	this.accuracy = accuracy;
-	this.range = range;
 	this.jitter = jitter;
 	this.guts = guts;
 	this.position = position;
@@ -99,6 +99,8 @@ public class Enemy implements Unit, Mover{
 	this.dice = new Random();
 	this.weapon = weapon;
 	this.glamourShot = glamourShot;
+	this.gm = gm;
+	this.ap = 2;
 	
 	this.displayStats = new ArrayList<String>();
 	displayStats.add("NAME: " + this.name.toUpperCase());
@@ -110,6 +112,7 @@ public class Enemy implements Unit, Mover{
 	} else {
 		displayStats.add("WEAPON: " + this.weapon.toString().toUpperCase());
 	}
+	gm.mapData.setTileOccupied(position, true);
 	}
 	
 	public void takeDmg(int dmg){
@@ -138,6 +141,12 @@ public class Enemy implements Unit, Mover{
 	}
 	
 	public int range(){
+		int range;
+		if (weapon == null){
+			range = 1;
+		} else {
+			range = weapon.range;
+		}
 		return range;
 	}
 	
@@ -169,8 +178,12 @@ public class Enemy implements Unit, Mover{
 
 	@Override
 	public void move(Coord destination) {
-		// TODO play move sound
-		this.position = destination;		
+		if (destination != null && !Coord.coordsEqual(destination, position) && gm.tileMath.pathExists(position, destination, speed)){
+			// TODO play move sound
+			gm.mapData.setTileOccupied(this.position, false);
+			gm.mapData.setTileOccupied(destination, true);
+			this.position = destination;
+		}		
 	}
 	
 	public String name(){
@@ -182,13 +195,11 @@ public class Enemy implements Unit, Mover{
 		return hasMoved;
 	}
 
-	@Override
 	public void setMoved() {
 		this.hasMoved = true;
 		
 	}
 
-	@Override
 	public void setMovable() {
 		this.hasMoved = false;
 	}
@@ -202,16 +213,22 @@ public class Enemy implements Unit, Mover{
 	}
 	
 	// returns true on hit, false on miss
-	public boolean Attack(Unit unit){
+	public boolean attack(Unit unit){
 		boolean attackHit;
-		int percentChanceToHit = ((unit.dodge() + this.accuracy())/100);
+		int percentChanceToHit = ((unit.dodge() + this.accuracy())/2);
 		int diceRoll = this.dice.nextInt(99) + 1;
+		int damage;
 		
 		if (!(diceRoll > percentChanceToHit)){
 			attackHit = true;
-			unit.takeDmg(weapon.getDamage());
+			damage = weapon.getDamage();
+			if (damage > unit.hp())
+				damage = unit.hp();
+			unit.takeDmg(damage);
+			gm.game().uiConsole.push(this.name + " hits " + unit.name() + " for " + damage + " hp.");
 		} else {
 			attackHit = false;
+			gm.game().uiConsole.push(this.name + " misses " + unit.name() + ".");
 		}
 		this.hasAttacked = true;
 		return attackHit;
@@ -229,5 +246,15 @@ public class Enemy implements Unit, Mover{
 	@Override
 	public ArrayList<String> toStringz() {
 		return this.displayStats;
+	}
+	
+	@Override
+	public void die(){
+		gm.mapData.setTileOccupied(this.position, false);
+	}
+
+	@Override
+	public int ap() {
+		return ap;
 	}
 }

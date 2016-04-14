@@ -45,9 +45,11 @@ public class Weapon {
 	public int dmgRange;
 	public boolean healing;
 	private Random dice;
+	private WeaponType type;
 	
 	public Weapon(WeaponType type){
 		this.dice = new Random();
+		this.type = type;
 		if (type == WeaponType.LAZER_LV1){
 			this.range = 6;
 			this.minDamage = 3;
@@ -165,4 +167,9 @@ public class Weapon {
 		return this.name;
 	}
 	
+	public boolean isPsionic(){
+		return this.type == WeaponType.PSIONIC_WILL_LV1
+				|| this.type == WeaponType.PSIONIC_WILL_LV2
+				|| this.type == WeaponType.PSIONIC_WILL_LV3;
+	}
 }

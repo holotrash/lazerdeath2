@@ -162,6 +162,7 @@ public class Map implements TileBasedMap{
 			
 		} // end while
 		reader.close();
+		
 	} // end constructor
 
 	@Override
@@ -184,10 +185,12 @@ public class Map implements TileBasedMap{
 	public boolean blocked(Mover mover, int x, int y) {
 		boolean isBlocked;
 		Coord coord = new Coord(x,y);
+		MapCell cell;
 		if (!mapData.containsKey(coord)){
 			isBlocked = true;
 		} else {
-			isBlocked = !(mapData.get(new Coord(x,y)).traversable());
+			cell = mapData.get(coord);
+			isBlocked = (!cell.traversable() || cell.occupied());
 		}
 		return isBlocked;
 	}

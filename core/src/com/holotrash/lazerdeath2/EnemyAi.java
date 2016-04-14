@@ -36,6 +36,8 @@ public class EnemyAi {
 	private int tempDistance;
 	private int shortestDistance;
 	
+	
+	
 	public EnemyAi(GameMaster gm){
 		this.gm = gm;
 		this.enemiesMoved = 0;
@@ -51,17 +53,22 @@ public class EnemyAi {
 	}
 
 	private void move(Enemy enemy) {		
-		//TODO: determine the weakest dude. weigh the alternatives
-		//determine the closest dude
+		//this.dudesWithinRange = new ArrayList<Dude>();
+		//this.coverWithinRange = new ArrayList<Coord>();
 		
+		//TODO: determine the weakest dude. weigh the alternatives
+		
+		//get a list of all the dudes in attack range. 
+				
+		// determine the closest dude within range
 		shortestDistance = 10000;
+
 		for (Dude d : gm.dudes()){
 			tempDistance = gm.tileMath.coordDistance(enemy.position(), d.position());
 			if (tempDistance < shortestDistance)
 				shortestDistance = tempDistance;
 			this.dudeToConfront = d;
 		}
-		
 		// TODO: determine the best cover in range. which cover provides the best cover
 		// from the player's units?
 		
@@ -70,21 +77,35 @@ public class EnemyAi {
 		shortestDistance = 10000;
 		for (MapCell cell : gm.tileMath.coverTiles()){
 			tempDistance = gm.tileMath.coordDistance(enemy.position(), cell.location());
-			if (tempDistance == 0)
+			if (tempDistance == 1)
 				enemyCovered = true;
 			if (tempDistance < shortestDistance){
 				shortestDistance = tempDistance;
+				this.coverToTake = cell.location();
 			}
-			this.coverToTake = cell.location();
+			
 		}
 
+
 		if (enemyCovered || gm.dice.nextInt(99) < enemy.guts()){
-			//TODO: attack
-			gm.printToConsole("COP WANTS TO ATTACK!");
+			// attack
+			boolean dudeIsInRange = gm.tileMath.withinAttackRange(enemy, dudeToConfront);
 			
+			if (!enemyCovered || !dudeIsInRange){
+				Coord movePosition = gm.tileMath.closestReachableCoord(enemy, dudeToConfront);
+				if (movePosition != null){
+					enemy.move(movePosition);
+					gm.game().uiConsole.push(enemy.name() + " moves to (" + movePosition.toString() + ").");
+				}
+			}
+			// calculate dudeInRange again because enemy may have moved
+			dudeIsInRange = gm.tileMath.withinAttackRange(enemy, dudeToConfront);
+			if (dudeIsInRange){
+				enemy.attack(dudeToConfront);
+			}
 		} else {
-			//TODO: seek cover
-			gm.printToConsole("COP WANTS TO HIDE!");
+			// seek cover
+			enemy.move(gm.tileMath.closestMoveable(enemy.position(), this.coverToTake, enemy.range()));
 		}
 		
 	}
@@ -92,5 +113,4 @@ public class EnemyAi {
 	public void newTurn(){
 		this.enemiesMoved = 0;
 	}
-	
 }

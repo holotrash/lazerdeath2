@@ -42,12 +42,12 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
@@ -71,16 +71,20 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
     ArrayList<Dude> dudes;
     ArrayList<Enemy> enemies;
     
-    ArrayList<HighlightTile> highlightTiles;
+    HashMap<Coord, HighlightTile> highlightTiles;
     ArrayList<InteractedTile> interactedTiles;
     boolean highlightOn;
-    Color hlColor;
+    Color hlColor1;
+    Color hlColor2;
     DialogBox dialogBox;
     BitmapFont dialogFont;
     BitmapFont uiFont;
     GlyphLayout layout;
+    MenuDialog menuDialog;
+    
     String temp;
     Vector3 tempV3;
+    Vector3 screenOrigin;
   
     Map mapData;
     SpriteBatch spriteBatch;
@@ -97,6 +101,10 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
     Sprite rightStatusBoxFade;
     Sprite glamourShot;
     Sprite defaultGlamourShot;
+    Sprite endTurnButton;
+    Sprite attackButton;
+    Sprite exitGameButton;
+    Sprite menuButton;
     
     ArrayList<String> currentUnitStats;
     ArrayDeque<String> uiConsole;
@@ -108,6 +116,8 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
     boolean scrollingDown = false;
     boolean scrollingLeft = false;
     boolean scrollingRight = false;
+    
+    boolean playerAttacking = false;
     
     float delta;
         
@@ -130,7 +140,7 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
         initializeEnemies();
         
         lastClickedCell = new Coord(-1,-1);
-        highlightTiles = new ArrayList<HighlightTile>(); 
+        highlightTiles = new HashMap<Coord, HighlightTile>(); 
         highlightOn = false;
         interactedTiles = new ArrayList<InteractedTile>();
         
@@ -141,13 +151,17 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
         this.rightStatusBoxFade = new Sprite(new Texture(Gdx.files.internal("gfx/right_status_box_fade_out.png")));
         this.defaultGlamourShot = new Sprite(new Texture(Gdx.files.internal("gfx/default_glamourshot.png")));
         this.glamourShot = defaultGlamourShot;
+        this.endTurnButton = new Sprite(new Texture(Gdx.files.internal("gfx/end_turn.png")));
+        this.attackButton = new Sprite(new Texture(Gdx.files.internal("gfx/attack_button.png")));
+        this.exitGameButton = new Sprite(new Texture(Gdx.files.internal("gfx/exit_game.png")));
+        this.menuButton = new Sprite(new Texture(Gdx.files.internal("gfx/menu_button.png")));
         
         tiledMap = new TmxMapLoader().load("gfx/" + mapData.tmxFileName + ".tmx");
         spriteBatch = new SpriteBatch();
         highlightBatch = new SpriteBatch();
-        tiledMapRenderer = new OrthogonalTiledMapRenderer(tiledMap, spriteBatch);
-        hlColor = Color.WHITE;        
+        tiledMapRenderer = new OrthogonalTiledMapRenderer(tiledMap, spriteBatch);       
         Gdx.input.setInputProcessor(this);
+        menuDialog = new MenuDialog(this);
         dialogBox = new DialogBox();
         dialogFont = new BitmapFont(Gdx.files.internal("fonts/bank.fnt"));
         uiFont = new BitmapFont(Gdx.files.internal("fonts/hack.fnt"));
@@ -164,6 +178,9 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
         
         uiConsole = new ArrayDeque<String>();
         uiConsole.push("Battle start...");
+        
+        this.screenOrigin = new Vector3(0,768,0);
+        this.screenOrigin = camera.unproject(this.screenOrigin);
         
     }
 
@@ -186,7 +203,6 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
         if (scrollingRight && camera.position.x < mapData.scrollRightMax){
         	camera.translate(SCROLLING_MULTIPLIER*delta, 0);
         }
-        
         camera.update();
         tiledMapRenderer.setView(camera);
         tiledMapRenderer.render();
@@ -208,12 +224,12 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
         
         //change states of sprites based on dude/enemy flags here
         for (int i=0;i<dudes.size();i++){
-        	if(dudes.get(i).position().equals(lastClickedCell) && gm.dudesTurn()){
+        	if(!this.playerAttacking && dudes.get(i).position().equals(lastClickedCell) && gm.dudesTurn()){
         		makeRangeHighlight(dudes.get(i));
         	}
         }
         for (int i=0;i<enemies.size();i++){
-        	if(enemies.get(i).position().equals(lastClickedCell) && gm.dudesTurn()){
+        	if(!this.playerAttacking && enemies.get(i).position().equals(lastClickedCell) && gm.dudesTurn()){
         		makeRangeHighlight(enemies.get(i));
         	}
         }
@@ -238,12 +254,24 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
         				     128*(enemies.get(i).position().y()));
         }
         if (gm.dudesTurn()){
-        	spriteBatch.setColor(hlColor);
-        	for (HighlightTile hlt : highlightTiles){
-        		spriteBatch.draw(hlt.sprite, 128*hlt.position.x(), 128*hlt.position.y());
+        	//spriteBatch.setColor(hlColor);
+        	for (Coord c : highlightTiles.keySet()){
+        		spriteBatch.setColor(highlightTiles.get(c).color);
+        		spriteBatch.draw(highlightTiles.get(c).sprite, 128*highlightTiles.get(c).position.x(), 128*highlightTiles.get(c).position.y());
         	}
         	spriteBatch.setColor(Color.WHITE);
         }
+        
+        // get a screen-relative point of reference for drawing ui elements
+        tempV3 = new Vector3(0,768,0);
+        tempV3 = camera.unproject(tempV3);
+        
+        // draw left side ui buttons
+        spriteBatch.draw(this.endTurnButton, tempV3.x + 10, tempV3.y + 625);
+        spriteBatch.draw(this.attackButton, tempV3.x + 10, tempV3.y + 500);
+        spriteBatch.draw(this.menuButton, tempV3.x + 10, tempV3.y + 375);
+        spriteBatch.draw(this.exitGameButton, tempV3.x + 10, tempV3.y + 250);
+        
         // draw left status dialog stuff
         if (this.selectedUnit != null){
         	this.glamourShot = selectedUnit.glamourShot();
@@ -252,8 +280,6 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
         	
         }
         
-        tempV3 = new Vector3(0,768,0);
-        tempV3 = camera.unproject(tempV3);
         spriteBatch.draw(this.leftStatusBox, tempV3.x, tempV3.y);
         spriteBatch.draw(this.rightStatusBox, tempV3.x + 768, tempV3.y - 64);
         spriteBatch.draw(this.glamourShot, tempV3.x, tempV3.y);
@@ -309,41 +335,72 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
             temp = dialogBox.btn2();
         	layout.setText(dialogFont, temp);
         	dialogFont.draw(spriteBatch, temp, tempV3.x - layout.width, tempV3.y - layout.height);
-        }
+        } else if (this.menuDialog.enabled()){
+        	// show menuDialog
+            this.screenOrigin = new Vector3(0,768,0);
+            this.screenOrigin = camera.unproject(this.screenOrigin);
+        	spriteBatch.draw(menuDialog.background(), screenOrigin.x + 384, screenOrigin.y + 64);
+        	spriteBatch.draw(menuDialog.buttons(), screenOrigin.x + 384, screenOrigin.y + 64);
+        	spriteBatch.draw(menuDialog.tabArrows(), screenOrigin.x + 384, screenOrigin.y + 64);
+        } else {
         
-        //Text overlay? dudes turn? enemies turn?
-        tempV3 = new Vector3(0,768,0);
-        tempV3 = camera.unproject(tempV3);
-        if (gm.dudesTurn() && this.overlayFadeCounter > 0){
-        	spriteBatch.draw(this.dudesTurnSprite, tempV3.x + 350, tempV3.y + 275);
-        	overlayFadeCounter--;
-        } else if (gm.enemiesTurn() && this.overlayFadeCounter > 0){
-        	spriteBatch.draw(this.enemiesTurnSprite, tempV3.x + 350, tempV3.y + 275);
-        	overlayFadeCounter--;
+        	//Text overlay? dudes turn? enemies turn?
+        	tempV3 = new Vector3(0,768,0);
+        	tempV3 = camera.unproject(tempV3);
+        	if (gm.dudesTurn() && this.overlayFadeCounter > 0){
+        		spriteBatch.draw(this.dudesTurnSprite, tempV3.x + 350, tempV3.y + 275);
+        		overlayFadeCounter--;
+        	} else if (gm.enemiesTurn() && this.overlayFadeCounter > 0){
+        		spriteBatch.draw(this.enemiesTurnSprite, tempV3.x + 350, tempV3.y + 275);
+        		overlayFadeCounter--;
+        	}
         }
-        
         spriteBatch.end();
-        	
-        gm.clockTick();
-        gm.advanceGame();
+        if (!dialogBox.enabled()){	
+        	gm.clockTick();
+        	gm.advanceGame();
+        }
         
     } // end render()
     
     
     private void makeRangeHighlight(Unit unit) {
     	highlightTiles.clear();
-    	HashSet<Coord> tileCoords = gm.unitMoveCoords(unit);
-    	if (unit.isDude()){
-    		hlColor = new Color(0.0f,0.0f,1.0f,0.4f);
-    	} else {
-    		hlColor = new Color(1.0f,0.0f,0.0f,0.4f);
-    	}
+    	HashSet<Coord> tileCoords;
     	
-    	for(Coord coord : tileCoords){
-    		highlightTiles.add(new HighlightTile(coord));
+    	for (int i=0;i<unit.ap()+1;i++){
+    	
+    		tileCoords = gm.unitMoveCoords(unit, i);
+    		if (unit.isDude()){
+    			hlColor1 = new Color(0.0f,0.0f,1.0f,0.5f/i);
+    			//hlColor2 = new Color(0.0f,0.0f,1.0f,0.2f);
+    		} else {
+    			hlColor1 = new Color(1.0f,0.0f,0.0f,0.5f/i);
+    			//hlColor2 = new Color(1.0f,0.0f,0.0f,0.2f);
+    		}
+    	
+    		for(Coord coord : tileCoords){
+    			if (!highlightTiles.containsKey(coord))
+    				highlightTiles.put(coord, new HighlightTile(coord, hlColor1));
+    		}
     	}
 	}
 
+    private void makeAttackHighlight(Unit unit){
+    	this.highlightTiles.clear();
+    	this.playerAttacking = true;
+    	HashSet<Unit> tileUnits = gm.tileMath.unitsWithinAttackRange(unit);
+    	hlColor1 = new Color(0.0f,0.0f,1.0f,0.5f);
+    	hlColor2 = new Color(1.0f,0.0f,0.0f,0.5f);
+    	for (Unit u : tileUnits){
+    		if (u.isDude()){
+    			highlightTiles.put(u.position(), new HighlightTile(u.position(), hlColor1));
+    		} else {
+    			highlightTiles.put(u.position(), new HighlightTile(u.position(), hlColor2));
+    		}
+    	}
+    }
+    
 	@Override
     public boolean keyDown(int keycode) {
     
@@ -377,7 +434,7 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
         return false;
     }
 
-    @Override
+	@Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
     	if (dialogBox.enabled()){
     		if (screenX > 405 && screenX < 620 && screenY > 535 && screenY < 610)
@@ -385,7 +442,65 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
     		else if (screenX > 745 && screenX < 960 && screenY > 540 && screenY < 620)
     			this.executeDialogOption2();
     		
-    	} else{
+    	} else if (screenX > 15 
+    				&& screenX < 135
+    				&& screenY > 25
+    				&& screenY < 125){
+    		gm.takeEnemiesTurn();
+    		System.out.println("Player ends turn.");
+    		System.out.println("last clicked pixel: (" + screenX + "," + screenY + ")");
+    	} else if (screenX > 15 
+				&& screenX < 135
+				&& screenY > 150
+				&& screenY < 250){
+	
+    		System.out.println("Attack!");
+    		System.out.println("last clicked pixel: (" + screenX + "," + screenY + ")");
+    		if (selectedUnit == null || !selectedUnit.isDude()){
+    			uiConsole.push("Select a dude.");
+    		} else {
+    			this.makeAttackHighlight(selectedUnit);
+    		}
+    	} else if (screenX > 15 
+				&& screenX < 135
+				&& screenY > 272
+				&& screenY < 375){
+
+    		System.out.println("Menu.");
+    		this.menuDialog.enable();
+    		System.out.println("last clicked pixel: (" + screenX + "," + screenY + ")");
+    	} else if (screenX > 15 
+				&& screenX < 135
+				&& screenY > 395
+				&& screenY < 500){
+
+    		System.out.println("Exit.");
+    		System.out.println("last clicked pixel: (" + screenX + "," + screenY + ")");
+    		Gdx.app.exit();
+    	}else if (this.playerAttacking){
+    		lastClickedCell = pixelToCell(vector3ToCoord(camera.unproject(new Vector3(screenX, screenY, 0))));
+    		boolean foundAttack = false;
+    		for (Dude d : dudes){
+    			if (!foundAttack && Coord.coordsEqual(d.position(), lastClickedCell)){
+    				selectedUnit.attack(d);
+    				this.playerAttacking = false;
+    				foundAttack = true;
+    				lastClickedCell = selectedUnit.position();    				
+    			}
+    		}
+    		for (Enemy e : enemies){
+    			if (!foundAttack && Coord.coordsEqual(e.position(), lastClickedCell)){
+    				selectedUnit.attack(e);
+    				this.playerAttacking = false;
+    				foundAttack = true;
+    				lastClickedCell = selectedUnit.position();
+    			}
+    		}
+    		
+    	} else {
+    		
+    		
+    		System.out.println("last clicked pixel: (" + screenX + "," + screenY + ")");
     		lastClickedCell = pixelToCell(vector3ToCoord(camera.unproject(new Vector3(screenX, screenY, 0))));
     		System.out.println("last clicked cell: (" + lastClickedCell.x() + "," + lastClickedCell.y() + ")");
 		
@@ -394,27 +509,37 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
     			//if lastClickedCell contains a unit, attempt to attack.
     			// otherwise attempt to move
     			Dude dudeMoving = dudes.get(gm.dudeMoving());
-    			boolean attack = false;
-    			for (Dude dude : dudes){
-    				if (dude.position().equals(lastClickedCell)){
-    					if (!(dudeMoving == dude)){
-    						dudeMoving.Attack(dude);
-    						System.out.println("Attacking dude: " + dude.name());
-    						attack = true;
-    					}
-    				}
-    			}
-    			for (Enemy enemy : enemies){
-    				if (enemy.position().equals(lastClickedCell)){
-    					dudeMoving.Attack(enemy);
-    					System.out.println("Attacking enemy: " + enemy.name());
-    					attack = true;
-    				}
-    			}
-    			if (!attack)
-    				dudes.get(gm.dudeMoving()).move(lastClickedCell);
-    			lastClickedCell = new Coord(-1,-1);
+    			//boolean attack = false;
+    			//for (Dude dude : dudes){
+    			//	if (dude.position().equals(lastClickedCell)){
+    			//		if (!(dudeMoving == dude)){
+    			//			dudeMoving.attack(dude);
+    			//			System.out.println("Attacking dude: " + dude.name());
+    			//			attack = true;
+    			//		}
+    			//	}
+    			//}
+    			//for (Enemy enemy : enemies){
+    			//	if (enemy.position().equals(lastClickedCell)){
+    			//		dudeMoving.attack(enemy);
+    			//		System.out.println("Attacking enemy: " + enemy.name());
+    			//		attack = true;
+    			//	}
+    			//}
+    			//if (!attack)
+    			dudes.get(gm.dudeMoving()).move(lastClickedCell);
     			this.highlightTiles.clear();
+    		   		// check for interactable tiles
+    			if (gm.tileMath.isInteractable(lastClickedCell)){
+    				if (gm.tileMath.isDoor(lastClickedCell) 
+    						&& dudeMoving.tileInInteractRange(lastClickedCell)
+    						&& dudeMoving.act(1)){
+    					gm.openDoor(lastClickedCell);
+    				} else if (gm.tileMath.isDoor(lastClickedCell)) {
+    					uiConsole.push("This door is out of " + dudeMoving.name() + "'s reach.");
+    				}
+    			}
+    			lastClickedCell = new Coord(-1,-1);
     		}
     		boolean dudesMoving = false;
     		for (int i=0;i<dudes.size();i++){
@@ -429,12 +554,7 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
     		}
     		//end dude moving
 		
-    		// TODO: check for interactable tiles
-    		if (gm.tileMath.isInteractable(lastClickedCell)){
-    			if (gm.tileMath.isDoor(lastClickedCell))
-    					gm.openDoor(lastClickedCell);
-    			lastClickedCell = new Coord(-1,-1);
-    		}
+    		
     	} // end of dialogBox.enabled = false block
     		return false;
     }
@@ -485,7 +605,7 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
     	dudes = new ArrayList<Dude>();
     	Texture rickyTexture = new Texture(Gdx.files.internal("gfx/ricky.png"));
     	Sprite glamourShot = new Sprite(new Texture(Gdx.files.internal("gfx/dude_glamourshot.png")));
-    	Dude ricky = new Dude("Ricky", rickyTexture, 25, 3, 25, 50, 75, new Coord(4,2), gm, glamourShot);
+    	Dude ricky = new Dude("Ricky", rickyTexture, 25, 15, 3, 25, 50, 75, 2, new Coord(4,2), gm, glamourShot);
     	ricky.setWeapon(new Weapon(WeaponType.PSIONIC_WILL_LV1));
     	dudes.add(ricky);
     }
@@ -496,20 +616,23 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
     	Sprite copGlamourShot = new Sprite(new Texture(Gdx.files.internal("gfx/cop_glamourshot.png")));
     	
     	enemies.add(new Enemy("Cop1", 
-    			copTexture, 25, 3, 25, 50, 75, 7, 15, 75, 
+    			copTexture, 25, 3, 25, 50, 75, 15, 75, 
     			new Coord(6,2), 
     			new Weapon(WeaponType.PHASE_BLUDGEON_LV1), 
-    			copGlamourShot));
+    			copGlamourShot,
+    			gm));
     	enemies.add(new Enemy("Cop2", 
-    			copTexture, 25, 3, 25, 50, 75, 7, 25, 85, 
+    			copTexture, 25, 3, 25, 50, 75, 25, 85, 
     			new Coord(7,6), 
     			new Weapon(WeaponType.PHASE_BLUDGEON_LV1), 
-    			copGlamourShot));
+    			copGlamourShot,
+    			gm));
     	enemies.add(new Enemy("Cop3", 
-    			copTexture, 25, 3, 25, 50, 75, 7, 10, 64, 
+    			copTexture, 25, 3, 25, 50, 75, 10, 64, 
     			new Coord(3,8), 
     			new Weapon(WeaponType.PHASE_BLUDGEON_LV1), 
-    			copGlamourShot));
+    			copGlamourShot,
+    			gm));
     }
     
     public void showDialog(DialogInfo di){

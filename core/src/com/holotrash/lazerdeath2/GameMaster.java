@@ -32,19 +32,22 @@ package com.holotrash.lazerdeath2;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.Random;
 
 import org.newdawn.slick.util.pathfinding.AStarPathFinder;
 
+import com.holotrash.lazerdeath2.Items.Item;
+
 public class GameMaster {
 
-	public final static int ENEMY_MOVE_LENGTH = 30;
+	public final static int ENEMY_MOVE_LENGTH = 100;
 	
 	public Map mapData;
 	public TileMath tileMath;
 	private DialogLibrarian dialogLibrarian;
 	private lazerdeath2 game;
+	private ArrayList<Item> inventory;
+	
 	private EnemyAi enemyAi;
 	public Random dice;
 	
@@ -78,7 +81,7 @@ public class GameMaster {
 			largestDimension = height;
 		} else
 			largestDimension = width;
-		this.tileMath = new TileMath(mapData, new AStarPathFinder(mapData, largestDimension, false));
+		this.tileMath = new TileMath(mapData, new AStarPathFinder(mapData, largestDimension, false), this);
 		 try {
 	        	//TODO: make this load the current level rather than 0
 	        	dialogLibrarian = new DialogLibrarian(0);
@@ -90,6 +93,7 @@ public class GameMaster {
 		 dice = new Random();
 		 enemyAi = new EnemyAi(this);
 		 numTurns = 0;
+		 inventory = new ArrayList<Item>();
 	}
 	
 	public void clockTick(){
@@ -117,12 +121,11 @@ public class GameMaster {
 		dudesTurn = true;
 		enemiesTurn = false;
 		for (Dude dude : game.dudes){
-			dude.setMovable();
-			dude.setCanAttack();
+			dude.resetAp();
 		}
 		this.numTurns++;
 		game.uiConsole.push("Round " + numTurns + ".");
-		game.overlayFadeCounter = game.OVERLAY_FADE_TIME;
+		game.overlayFadeCounter = lazerdeath2.OVERLAY_FADE_TIME;
 	}
 	
 	public boolean enemiesTurn(){
@@ -131,11 +134,11 @@ public class GameMaster {
 	public void takeEnemiesTurn(){
 		enemiesTurn = true;
 		dudesTurn = false;
-		game.overlayFadeCounter = game.OVERLAY_FADE_TIME;
+		game.overlayFadeCounter = lazerdeath2.OVERLAY_FADE_TIME;
 	}
 	
-	public HashSet<Coord> unitMoveCoords(Unit unit){
-		return tileMath.unitMoveCoords(unit);
+	public HashSet<Coord> unitMoveCoords(Unit unit, int ap){
+		return tileMath.unitMoveCoords(unit, ap);
 	}
 	
 	public boolean dudesWon(){
@@ -205,15 +208,15 @@ public class GameMaster {
 	public boolean dudesTurnOver() {
 		boolean allDudesActed = true;
 		for (Dude dude : game.dudes){
-			if (!dude.hasMoved() || !dude.hasAttacked())
+			if (dude.ap() > 0)
 				allDudesActed = false;
 		}
 		return allDudesActed;
 	}
 
-	public void resetDudesMoved() {
+	public void resetDudesAP() {
 		for (Dude dude : game.dudes){
-			dude.setMovable();
+			dude.resetAp();
 		}
 	}
 
@@ -247,14 +250,16 @@ public class GameMaster {
 	public void advanceGame() {
 		for (int i=0;i<game.dudes.size();i++){
 			if (game.dudes.get(i).isDead()){
-				//show dude death dialog
+				game.dudes.get(i).die();
+				//TODO: show dude death dialog
 				game.dudes.remove(i);
 			}
 				
 		}
 		for (int i=0;i<game.enemies.size();i++){
 			if (game.enemies.get(i).isDead()){
-				//show dude death dialog
+				game.enemies.get(i).die();
+				//TODO: show enemy death dialog
 				game.enemies.remove(i);
 			}
 				
@@ -293,5 +298,13 @@ public class GameMaster {
 	
 	public ArrayList<Enemy> enemies(){
 		return game.enemies;
+	}
+	
+	public lazerdeath2 game(){
+		return this.game;
+	}
+	
+	public void pickUpItem(Item item){
+		this.inventory.add(item);
 	}
 }

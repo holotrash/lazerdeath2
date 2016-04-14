@@ -41,16 +41,13 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
 
 public interface Unit {
 	
+	public void die();
 	
 	public boolean isDead();
 	
 	public boolean isDude();
 	
 	public boolean hasMoved();
-	
-	public void setMoved();
-	
-	public void setMovable();
 	
 	public void takeDmg(int dmg);
 	
@@ -77,4 +74,8 @@ public interface Unit {
 	public String name();
 
 	public ArrayList<String> toStringz();
+
+	public int ap();
+	
+	public boolean attack(Unit unit);
 }

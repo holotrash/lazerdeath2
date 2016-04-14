@@ -33,35 +33,46 @@ import org.newdawn.slick.util.pathfinding.Mover;
 
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.holotrash.lazerdeath2.Items.Consumable;
+import com.holotrash.lazerdeath2.Items.ConsumableEffect;
 
 public class Dude implements Unit, Mover{
 	
 	private String name;
+	
 	private int hp;       // hit points
+	private int maxHp;
+	private int pp;
+	private int maxPp;
 	private int speed;    // number of tiles that a Dude can move per turn
 	private int strength;
 	private int dodge;    // percent chance to avoid attack (unmodified by opponent's accuracy)
 	private int accuracy; // percent chance to hit (unmodified by opponent's dodge)
+	private int ap;
+	private int maxAp;
 	private Coord position; // position on map;
+	
 	private Sprite sprite;
 	private Sprite glamourShot;
 	private GameMaster gm;
 	
-	private Weapon weapon;
+	private ArrayList<ConsumableEffect> effects;
 	
-	private boolean hasMoved;
-	private boolean hasAttacked;
+	private Weapon weapon;
+
 	private Random dice;
 	
 	private ArrayList<String> displayStatistics;
 	
 	public Dude(String name,
 			    Texture texture, 
-			    int hp, 
+			    int hp,
+			    int pp,
 			    int speed, 
 			    int strength, 
 			    int dodge, 
-			    int accuracy, 
+			    int accuracy,
+			    int ap,
 			    Coord position,
 			    GameMaster gm,
 			    Sprite glamourShot)
@@ -69,28 +80,33 @@ public class Dude implements Unit, Mover{
 		this.name = name;
 		sprite = new Sprite(texture, 0, 0, 128, 128);
 		this.hp = hp;
+		this.maxHp = hp;
+		this.maxPp = pp;
+		this.pp = pp;
 		this.speed = speed;
 		this.strength = strength;
 		this.dodge = dodge;
 		this.accuracy = accuracy;
+		this.maxAp = ap;
+		this.ap = ap;
 		this.position = position;
 		this.gm = gm;
-		this.hasMoved = false;
-		this.hasAttacked = false;
 		this.dice = new Random();
 		this.weapon = null;
 		this.glamourShot = glamourShot;
 		this.displayStatistics = new ArrayList<String>();
 		displayStatistics.add("NAME: " + this.name.toUpperCase());
-		displayStatistics.add("HP: " + this.hp);
-		displayStatistics.add("SPEED: " + this.speed);
-		displayStatistics.add("DODGE: " + this.dodge);
+		displayStatistics.add("HP: " + this.hp + "   ACCURACY: " + this.accuracy);
+		displayStatistics.add("SPEED: " + this.speed + "    AP: " + this.ap);
+		displayStatistics.add("DODGE: " + this.dodge + " STRENGTH: " + this.strength);
 		if (this.weapon == null){
 			displayStatistics.add("WEAPON: UNARMED");
 		} else {
 			displayStatistics.add("WEAPON: " + this.weapon.toString().toUpperCase());
 		}
 
+		gm.mapData.setTileOccupied(position, true);
+		this.effects = new ArrayList<ConsumableEffect>();
 	}
 	
 	public Dude() {
@@ -100,6 +116,8 @@ public class Dude implements Unit, Mover{
 	@Override
 	public void takeDmg(int dmg){
 		this.hp = this.hp - dmg;
+		displayStatistics.set(1, "HP: " + this.hp + "   ACCURACY: " + this.accuracy);
+		
 	}
 	
 	@Override
@@ -149,7 +167,7 @@ public class Dude implements Unit, Mover{
 
 	@Override
 	public boolean isDead() {
-		return (this.hp == 0);
+		return (this.hp <= 0);
 	}
 	
 	@Override
@@ -159,12 +177,16 @@ public class Dude implements Unit, Mover{
 
 	@Override
 	public void move(Coord destination) {
-		if (!this.hasMoved && gm.tileMath.unitMoveCoords(this).contains(destination)){
+		if (gm.tileMath.unitMoveCoords(this, 1).contains(destination) && this.act(1)){
 			gm.mapData.setTileOccupied(this.position, false);
-			gm.mapData.setTileOccupied(this.position, true);
+			gm.mapData.setTileOccupied(destination, true);
 			this.position = destination;
 			// TODO play move sound
-			this.hasMoved = true;
+		} else if (gm.tileMath.unitMoveCoords(this, 2).contains(destination) && this.act(2)){
+			gm.mapData.setTileOccupied(this.position, false);
+			gm.mapData.setTileOccupied(destination, true);
+			this.position = destination;
+			// TODO play move sound
 		}
 	}
 	
@@ -172,37 +194,19 @@ public class Dude implements Unit, Mover{
 		return this.name;
 	}
 
-	@Override
-	public boolean hasMoved() {
-		return hasMoved;
-	}
-
-	@Override
-	public void setMoved() {
-		this.hasMoved = true;
-		
-	}
-
-	@Override
-	public void setMovable() {
-		this.hasMoved = false;
-		
-	}
-	
-	public void setCanAttack(){
-		this.hasAttacked = false;
-	}
 	public void setWeapon(Weapon weapon){
 		this.weapon = weapon;
 		displayStatistics.set(4, "WEAPON: " + this.weapon.toString().toUpperCase());
 	}
 	
 	// returns true on hit, false on miss
-	public boolean Attack(Unit unit){
+	public boolean attack(Unit unit){
 		boolean attackHit = false;
 		int percentChanceToHit = ((unit.dodge() + this.accuracy())/2);
 		int diceRoll = this.dice.nextInt(99) + 1;
-		if (!hasAttacked){
+		if (this.weapon.isPsionic() && this.pp < 1){
+			gm.printToConsole(this.name + " doesn't have enough Psi Points.");
+		} else if (this.act(1)){
 			if (!(diceRoll > percentChanceToHit)){
 				attackHit = true;
 				int damage = weapon.getDamage();
@@ -219,15 +223,10 @@ public class Dude implements Unit, Mover{
 				attackHit = false;
 				gm.printToConsole(this.name + " misses!");
 			}
-			this.hasAttacked = true;
 		} else {
-			gm.printToConsole(this.name + " has already attacked.");
+			gm.printToConsole("Not enough AP for " + this.name + " to attack!");
 		}
 		return attackHit;
-	}
-
-	public boolean hasAttacked() {
-		return this.hasAttacked;
 	}
 
 	@Override
@@ -240,4 +239,66 @@ public class Dude implements Unit, Mover{
 		return this.displayStatistics;
 	}
 	
+	@Override
+	public void die(){
+		gm.mapData.setTileOccupied(this.position, false);
+	}
+	
+	public int ap(){
+		return this.ap;
+	}
+	
+	public void resetAp(){
+		this.ap = this.maxAp;
+		displayStatistics.set(2, "SPEED: " + this.speed + "    AP: " + this.ap);
+	}
+	
+	// returns true if the action is successful (the unit has enough ap)
+	// returns false if not enough ap to perform the action
+	public boolean act(int apCost){
+		boolean result;
+		if (apCost<=this.ap){
+			result = true;
+			this.ap = this.ap - apCost;
+			displayStatistics.set(2, "SPEED: " + this.speed + "    AP: " + this.ap);
+		} else {
+			result = false;
+		}
+		return result;
+	}
+
+	@Override
+	public boolean hasMoved() {
+		return this.ap <= 0;
+	}
+	
+	public boolean tileInInteractRange(Coord c){
+		boolean result;
+		
+		if (c.x() == this.position.x()
+				&& Math.abs(c.y() - this.position.y()) == 1){
+			result = true;
+		} else if (c.y() == this.position.y()
+				&& Math.abs(c.x() - this.position.x()) == 1){
+			result = true;
+		} else {
+			result = false;
+		}		
+		
+		return result;
+	}
+
+	public int pp(){
+		return pp;
+	}
+	
+	public void usePp(int amt){
+		this.pp = this.pp - amt;
+	}
+	
+	public void Consume(Consumable c){
+		for (ConsumableEffect e : c.effects()){
+			this.effects.add(e);
+		}
+	}
 }

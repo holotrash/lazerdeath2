@@ -9,7 +9,7 @@ import org.newdawn.slick.util.pathfinding.heuristics.ClosestHeuristic;
  * A path finder implementation that uses the AStar heuristic based algorithm
  * to determine a path. 
  * 
- * @author Kevin Glass, adapted for lazerdeath2 by Rob Craig
+ * @author Kevin Glass, 
  */
 public class AStarPathFinder implements PathFinder {
 	/** The set of nodes that have been searched through */

@@ -29,7 +29,7 @@
  * 
  */
 
-package com.holotrash.lazerdeath2;
+package com.holotrash.lazerdeath2.Maps;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -37,8 +37,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import org.newdawn.slick.util.pathfinding.*;
+
+import com.holotrash.lazerdeath2.lazerdeath2;
 import com.holotrash.lazerdeath2.Items.Container;
 import com.holotrash.lazerdeath2.Items.Item;
+import com.holotrash.lazerdeath2.LazerMath.Coord;
 
 public class Map implements TileBasedMap{
 
@@ -52,9 +55,7 @@ public class Map implements TileBasedMap{
 	public ArrayList<WinCondition> winConditions;
 	public ArrayList<Container> containers;
 	public ArrayList<Item> items;
-	private lazerdeath2 game;	
-	private ItemWrangler itemWrangler;
-	
+	private lazerdeath2 game;		
 	
 	private Coord aCoord;
 	
@@ -168,7 +169,6 @@ public class Map implements TileBasedMap{
 			
 		} // end while
 		reader.close();
-		
 	} // end constructor
 
 	@Override

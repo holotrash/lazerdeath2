@@ -25,6 +25,11 @@
  */
 package com.holotrash.lazerdeath2;
 
+import com.holotrash.lazerdeath2.LazerMath.Coord;
+import com.holotrash.lazerdeath2.Maps.MapCell;
+import com.holotrash.lazerdeath2.Units.Dude;
+import com.holotrash.lazerdeath2.Units.Enemy;
+
 public class EnemyAi {
 
 	public int enemiesMoved;

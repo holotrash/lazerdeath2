@@ -33,12 +33,13 @@
  * 
  */
 
-package com.holotrash.lazerdeath2;
+package com.holotrash.lazerdeath2.Units;
 
 import java.util.ArrayList;
 
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.holotrash.lazerdeath2.Items.ConsumableEffect;
+import com.holotrash.lazerdeath2.LazerMath.Coord;
 
 public interface Unit {
 	

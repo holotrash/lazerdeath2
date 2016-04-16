@@ -26,7 +26,7 @@
  * 
  */
 
-package com.holotrash.lazerdeath2;
+package com.holotrash.lazerdeath2.Dialogs;
 
 import java.io.BufferedReader;
 import java.io.FileReader;

@@ -1,10 +1,8 @@
 /**
- *  WeaponType.java
+ *  HighlightTile.java
  *  ----  
- *  An enum of all the types of Weapons there are in Lazerdeath2.
- *  
- *  Note that reusable healing items are also considered Weapons
- *  and are equipped and used in the same way.
+ *  Has a Sprite to throw onto the map to highlight a tile and a position
+ *  on that map to throw the Sprite onto. 
  *  ---------------------------------------------------------------------
  *  This file is part of the computer game Lazerdeath2 
  *  Copyright 2016, Robert Watson Craig III
@@ -24,25 +22,26 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with Lazerdeath2.  If not, see <http://www.gnu.org/licenses/>.
+ * 
  */
-package com.holotrash.lazerdeath2;
 
-public enum WeaponType {
-	LAZER_LV1, 
-	LAZER_LV2, 
-	LAZER_LV3, 
-	PARTICLE_BEAM_LV1, 
-	PARTICLE_BEAM_LV2, 
-	PARTICLE_BEAM_LV3, 
-	PSIONIC_WILL_LV1, 
-	PSIONIC_WILL_LV2,
-	PSIONIC_WILL_LV3,
-	PHASE_BLUDGEON_LV1,
-	PHASE_BLUDGEON_LV2,
-	PHASE_BLUDGEON_LV3,
-	LAZER_FIST_LV1,
-	LAZER_FIST_LV2,
-	TISSUE_REPLICATOR_LV1,
-	TISSUE_REPLICATOR_LV2,
-	TISSUE_REPLICATOR_LV3
+package com.holotrash.lazerdeath2.Maps;
+
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.holotrash.lazerdeath2.LazerMath.Coord;
+
+public class HighlightTile {
+
+	public Coord position; // position on map;
+	public Sprite sprite;
+	public Color color;
+	
+	public HighlightTile(Coord position, Color color){
+		this.position = position;
+		this.sprite = new Sprite(new Texture(Gdx.files.internal("gfx/highlight_tile.png")));
+		this.color = color;
+	}
 }

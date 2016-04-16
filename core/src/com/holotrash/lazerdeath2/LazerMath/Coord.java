@@ -1,8 +1,8 @@
 /**
- *  InteractedTile.java
+ *  Coord.java
  *  ----  
- *  A tile to be pasted over the map when a switch is thrown or a door
- *  is opened.
+ *  Represents a 2D coordinate. Could be a coordinate on a grid of pixels
+ *  or a grid of map cells depending on the context.
  *  ---------------------------------------------------------------------
  *  This file is part of the computer game Lazerdeath2 
  *  Copyright 2016, Robert Watson Craig III
@@ -25,19 +25,56 @@
  * 
  */
 
-package com.holotrash.lazerdeath2;
+package com.holotrash.lazerdeath2.LazerMath;
 
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.Sprite;
+public class Coord {
 
-public class InteractedTile {
-	public Coord position; // position on map;
-
-	public Sprite sprite;
+	private int x;
+	private int y;
 	
-	public InteractedTile(Coord position, Coord region, String mapTilesFile){
-		this.position = position;
-		this.sprite = new Sprite(new Texture(Gdx.files.internal(mapTilesFile)), 128*region.x(), 128*region.y(), 128, 128);
+	public Coord(int x, int y){
+		this.x = x;
+		this.y = y;
+	}
+	
+	public int x(){
+		return x;
+	}
+	
+	public int y(){
+		return y;
+	}
+	
+	@Override
+	public boolean equals(Object other){
+		boolean returnVal;
+		if (other == null) {
+			returnVal = false;
+		} else if (this.getClass() != other.getClass())
+			returnVal = false;
+		else if(((Coord)other).x() == this.x && ((Coord)other).y() == this.y){
+			returnVal = true;
+		} else {
+			returnVal = false;
+		}
+		return returnVal;
+	}
+	
+	@Override
+	public int hashCode(){
+		final int PRIME1 = 31;
+		final int PRIME2 = 7;
+	    int result;
+	    result = (PRIME1 * y) + (PRIME2 * x); 
+	    return result;
+	}
+	
+	@Override
+	public String toString(){
+		return Integer.toString(x) + "," + Integer.toString(y);
+	}
+	
+	public static boolean coordsEqual(Coord c1, Coord c2){
+		return c1.x() == c2.x() && c1.y() == c2.y();
 	}
 }

@@ -26,7 +26,9 @@
  * 
  */
 
-package com.holotrash.lazerdeath2;
+package com.holotrash.lazerdeath2.Maps;
+
+import com.holotrash.lazerdeath2.LazerMath.Coord;
 
 public class MapCell {
 	

@@ -1,4 +1,4 @@
-package com.holotrash.lazerdeath2;
+package com.holotrash.lazerdeath2.Maps;
 
 public class Lock {
 	

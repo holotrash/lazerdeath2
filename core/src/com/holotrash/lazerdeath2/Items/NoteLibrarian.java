@@ -1,4 +1,4 @@
-package com.holotrash.lazerdeath2;
+package com.holotrash.lazerdeath2.Items;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -10,6 +10,7 @@ public class NoteLibrarian {
 	private ArrayList<ArrayList<String>> notes;
 	private ArrayList<Boolean> acquisitionStatuses;
 	private ArrayList<String> acquiredNoteTitles;
+	private ArrayList<String> allNoteTitles;
 	private ArrayList<Integer> acquiredNoteIndices;
 	
 	public NoteLibrarian() throws IOException{
@@ -34,6 +35,11 @@ public class NoteLibrarian {
 		this.acquisitionStatuses.add(false);
 		reader.close();
 		this.update();
+		
+		allNoteTitles = new ArrayList<String>();
+		for(ArrayList<String> note : notes){
+			allNoteTitles.add(note.get(0));
+		}
 	}
 	
 	public ArrayList<String> acquiredNoteTitles(){
@@ -51,6 +57,10 @@ public class NoteLibrarian {
 	
 	public ArrayList<String> note(int relativeIndex){
 		return this.notes.get(this.acquiredNoteIndices.get(relativeIndex));
+	}
+	
+	public String noteTitle(int absoluteIndex){
+		return this.allNoteTitles.get(absoluteIndex);
 	}
 	
 	private void update(){

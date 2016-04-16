@@ -36,18 +36,32 @@ import java.util.Random;
 
 import org.newdawn.slick.util.pathfinding.AStarPathFinder;
 
+import com.holotrash.lazerdeath2.Dialogs.DialogInfo;
+import com.holotrash.lazerdeath2.Dialogs.DialogLibrarian;
 import com.holotrash.lazerdeath2.Items.Item;
+import com.holotrash.lazerdeath2.Items.ItemWrangler;
+import com.holotrash.lazerdeath2.Items.NoteLibrarian;
+import com.holotrash.lazerdeath2.LazerMath.Coord;
+import com.holotrash.lazerdeath2.LazerMath.TileMath;
+import com.holotrash.lazerdeath2.Maps.Map;
+import com.holotrash.lazerdeath2.Maps.WinCondition;
+import com.holotrash.lazerdeath2.Maps.WinType;
+import com.holotrash.lazerdeath2.Units.Dude;
+import com.holotrash.lazerdeath2.Units.Enemy;
+import com.holotrash.lazerdeath2.Units.Unit;
 
 public class GameMaster {
 
 	public final static int ENEMY_MOVE_LENGTH = 100;
+	public static final Coord nullCoord = new Coord(-1,-1);
 	
 	public Map mapData;
 	public TileMath tileMath;
 	private DialogLibrarian dialogLibrarian;
-	private NoteLibrarian noteLibrarian;
+	public NoteLibrarian noteLibrarian;
+	public ItemWrangler itemWrangler;
 	private lazerdeath2 game;
-	private ArrayList<Item> inventory;
+	public ArrayList<Item> inventory;
 	
 	private EnemyAi enemyAi;
 	public Random dice;
@@ -82,6 +96,7 @@ public class GameMaster {
 			largestDimension = height;
 		} else
 			largestDimension = width;
+		
 		this.tileMath = new TileMath(mapData, new AStarPathFinder(mapData, largestDimension, false), this);
 		 try {
 	        	//TODO: make this load the current level rather than 0
@@ -96,10 +111,18 @@ public class GameMaster {
 		 numTurns = 0;
 		 inventory = new ArrayList<Item>();
 		 try {
+			 System.out.println("Loading note librarian");
 			this.noteLibrarian = new NoteLibrarian();
 		} catch (IOException e) {
 			System.out.println("Failed to load notes from /data/notes.csv");
 			e.printStackTrace();
+		}
+		try {
+			System.out.println("Loading item wrangler");
+			this.itemWrangler = new ItemWrangler(this, 0);
+		} catch (IOException e1) {
+			System.out.println("failed to create ItemWrangler:" + e1.getMessage());
+			e1.printStackTrace();
 		}
 	}
 	
@@ -316,5 +339,10 @@ public class GameMaster {
 	}
 	public int turn(){
 		return numTurns;
+	}
+
+	public void useItemDialog(int inventoryCursorIndex) {
+		// TODO Auto-generated method stub
+		
 	}
 }

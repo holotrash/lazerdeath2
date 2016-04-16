@@ -1,9 +1,9 @@
 package com.holotrash.lazerdeath2.Items;
 
 import com.badlogic.gdx.graphics.g2d.Sprite;
-import com.holotrash.lazerdeath2.ElectronicLock;
 import com.holotrash.lazerdeath2.GameMaster;
-import com.holotrash.lazerdeath2.Unit;
+import com.holotrash.lazerdeath2.Maps.ElectronicLock;
+import com.holotrash.lazerdeath2.Units.Unit;
 
 public class KeyCard implements Item{
 

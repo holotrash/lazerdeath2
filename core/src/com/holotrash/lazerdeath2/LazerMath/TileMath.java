@@ -27,13 +27,20 @@
  * 
  */
 
-package com.holotrash.lazerdeath2;
+package com.holotrash.lazerdeath2.LazerMath;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import org.newdawn.slick.util.pathfinding.AStarPathFinder;
 import org.newdawn.slick.util.pathfinding.Path;
+
+import com.holotrash.lazerdeath2.GameMaster;
+import com.holotrash.lazerdeath2.Maps.Map;
+import com.holotrash.lazerdeath2.Maps.MapCell;
+import com.holotrash.lazerdeath2.Units.Dude;
+import com.holotrash.lazerdeath2.Units.Enemy;
+import com.holotrash.lazerdeath2.Units.Unit;
 
 public class TileMath {
 	

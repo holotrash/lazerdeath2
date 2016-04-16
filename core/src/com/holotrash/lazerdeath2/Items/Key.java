@@ -2,8 +2,8 @@ package com.holotrash.lazerdeath2.Items;
 
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.holotrash.lazerdeath2.GameMaster;
-import com.holotrash.lazerdeath2.Lock;
-import com.holotrash.lazerdeath2.Unit;
+import com.holotrash.lazerdeath2.Maps.Lock;
+import com.holotrash.lazerdeath2.Units.Unit;
 
 public class Key implements Item{
 
@@ -14,7 +14,8 @@ public class Key implements Item{
 	private Sprite invSprite;
 	private GameMaster gm;
 	
-	public Key(GameMaster gm, String name, int tumbler, String description, Sprite tileSprite, Sprite invSprite){
+	public Key(GameMaster gm, int tumbler, String name, String description, Sprite tileSprite, Sprite invSprite){
+		this.gm = gm;
 		this.name = name;
 		this.description = description;
 		this.tileSprite = tileSprite;

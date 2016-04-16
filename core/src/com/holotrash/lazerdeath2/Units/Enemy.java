@@ -25,7 +25,7 @@
  * 
  */
 
-package com.holotrash.lazerdeath2;
+package com.holotrash.lazerdeath2.Units;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -34,7 +34,9 @@ import org.newdawn.slick.util.pathfinding.Mover;
 
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.holotrash.lazerdeath2.GameMaster;
 import com.holotrash.lazerdeath2.Items.ConsumableEffect;
+import com.holotrash.lazerdeath2.LazerMath.Coord;
 
 public class Enemy implements Unit, Mover{
 	private String name;
@@ -227,10 +229,10 @@ public class Enemy implements Unit, Mover{
 			if (damage > unit.hp())
 				damage = unit.hp();
 			unit.takeDmg(damage);
-			gm.game().uiConsole.push(this.name + " hits " + unit.name() + " for " + damage + " hp.");
+			gm.printToConsole(this.name + " hits " + unit.name() + " for " + damage + " hp.");
 		} else {
 			attackHit = false;
-			gm.game().uiConsole.push(this.name + " misses " + unit.name() + ".");
+			gm.printToConsole(this.name + " misses " + unit.name() + ".");
 		}
 		this.hasAttacked = true;
 		return attackHit;

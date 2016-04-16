@@ -1,6 +1,6 @@
 package com.holotrash.lazerdeath2.Items;
 
-import com.holotrash.lazerdeath2.UnitStatistic;
+import com.holotrash.lazerdeath2.Units.UnitStatistic;
 
 public class ConsumableEffect {
 

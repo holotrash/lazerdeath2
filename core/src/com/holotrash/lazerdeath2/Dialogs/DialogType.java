@@ -1,9 +1,7 @@
 /**
- *  TileInteraction.java
+ *  DialogType.java
  *  ----  
- *  I forgot what this is. I don't think the game uses this anymore.
- *  
- *  TODO: figure out if this is even a class that the game uses.
+ *  An enum representing the types of DialogBox there might be.  
  *  ---------------------------------------------------------------------
  *  This file is part of the computer game Lazerdeath2 
  *  Copyright 2016, Robert Watson Craig III
@@ -26,17 +24,8 @@
  * 
  */
 
-package com.holotrash.lazerdeath2;
+package com.holotrash.lazerdeath2.Dialogs;
 
-public class TileInteraction {
-
-	public boolean dialogInteraction;
-	public DialogInfo dialogInfo;
-	
-	public TileInteraction (){
-		this.dialogInfo = null;
-		dialogInteraction = false;
-		
-	}
-	
+public enum DialogType {
+	CUT_SCENE_LEVEL_START, CUT_SCENE_LEVEL_END, CUT_SCENE, DEATH_SCENE, DECISION, TILE_INTERACTION_DOOR
 }

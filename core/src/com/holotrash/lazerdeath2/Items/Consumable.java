@@ -3,7 +3,7 @@ package com.holotrash.lazerdeath2.Items;
 import java.util.ArrayList;
 
 import com.badlogic.gdx.graphics.g2d.Sprite;
-import com.holotrash.lazerdeath2.Unit;
+import com.holotrash.lazerdeath2.Units.Unit;
 
 public class Consumable implements Item{
 

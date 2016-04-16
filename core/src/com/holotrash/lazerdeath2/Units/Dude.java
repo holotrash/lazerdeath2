@@ -24,7 +24,7 @@
  * 
  */
 
-package com.holotrash.lazerdeath2;
+package com.holotrash.lazerdeath2.Units;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -33,8 +33,10 @@ import org.newdawn.slick.util.pathfinding.Mover;
 
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.holotrash.lazerdeath2.GameMaster;
 import com.holotrash.lazerdeath2.Items.Consumable;
 import com.holotrash.lazerdeath2.Items.ConsumableEffect;
+import com.holotrash.lazerdeath2.LazerMath.Coord;
 
 public class Dude implements Unit, Mover{
 	
@@ -181,11 +183,13 @@ public class Dude implements Unit, Mover{
 			gm.mapData.setTileOccupied(this.position, false);
 			gm.mapData.setTileOccupied(destination, true);
 			this.position = destination;
+			this.getFloorItems();
 			// TODO play move sound
 		} else if (gm.tileMath.unitMoveCoords(this, 2).contains(destination) && this.act(2)){
 			gm.mapData.setTileOccupied(this.position, false);
 			gm.mapData.setTileOccupied(destination, true);
 			this.position = destination;
+			this.getFloorItems();
 			// TODO play move sound
 		}
 	}
@@ -311,6 +315,14 @@ public class Dude implements Unit, Mover{
 				// kind of iffy about removing in this loop because it affects
 				// index/size but if there are problems maybe use another strategy
 			}
+		}
+	}
+	
+	private void getFloorItems(){
+		if(gm.itemWrangler.items.containsKey(position)){
+			//TODO play get item sound
+			gm.inventory.add(gm.itemWrangler.items.get(position));
+			gm.itemWrangler.items.remove(position);
 		}
 	}
 }

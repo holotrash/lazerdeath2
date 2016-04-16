@@ -33,7 +33,7 @@
  *  along with Lazerdeath2.  If not, see <http://www.gnu.org/licenses/>.
  * 
  */
-package com.holotrash.lazerdeath2;
+package com.holotrash.lazerdeath2.Units;
 
 import java.util.Random;
 

@@ -1,8 +1,8 @@
 /**
- *  Coord.java
+ *  DialogInfo.java
  *  ----  
- *  Represents a 2D coordinate. Could be a coordinate on a grid of pixels
- *  or a grid of map cells depending on the context.
+ *  An object containing all the information required to prepare a DialogBox
+ *  to be shown.
  *  ---------------------------------------------------------------------
  *  This file is part of the computer game Lazerdeath2 
  *  Copyright 2016, Robert Watson Craig III
@@ -25,56 +25,45 @@
  * 
  */
 
-package com.holotrash.lazerdeath2;
+package com.holotrash.lazerdeath2.Dialogs;
 
-public class Coord {
+import java.util.ArrayList;
 
-	private int x;
-	private int y;
+import com.holotrash.lazerdeath2.LazerMath.Coord;
+
+public class DialogInfo {
+
+	private ArrayList<ArrayList<String>> messages;
+	private String btn1;
+	private String btn2;
+	private DialogType type;
+	private Coord mapCoord;
 	
-	public Coord(int x, int y){
-		this.x = x;
-		this.y = y;
+	public DialogInfo(ArrayList<ArrayList<String>> messages, 
+			String btn1, String btn2, DialogType type){
+		this.messages = messages;
+		this.btn1 = btn1;
+		this.btn2 = btn2;
+		this.type = type;
 	}
 	
-	public int x(){
-		return x;
+	public ArrayList<ArrayList<String>> messages(){
+		return messages;
 	}
 	
-	public int y(){
-		return y;
+	public String btn1(){
+		return btn1;
 	}
-	
-	@Override
-	public boolean equals(Object other){
-		boolean returnVal;
-		if (other == null) {
-			returnVal = false;
-		} else if (this.getClass() != other.getClass())
-			returnVal = false;
-		else if(((Coord)other).x() == this.x && ((Coord)other).y() == this.y){
-			returnVal = true;
-		} else {
-			returnVal = false;
-		}
-		return returnVal;
+	public String btn2(){
+		return btn2;
 	}
-	
-	@Override
-	public int hashCode(){
-		final int PRIME1 = 31;
-		final int PRIME2 = 7;
-	    int result;
-	    result = (PRIME1 * y) + (PRIME2 * x); 
-	    return result;
+	public DialogType type(){
+		return type;
 	}
-	
-	@Override
-	public String toString(){
-		return Integer.toString(x) + "," + Integer.toString(y);
+	public Coord mapCoord(){
+		return mapCoord;
 	}
-	
-	public static boolean coordsEqual(Coord c1, Coord c2){
-		return c1.x() == c2.x() && c1.y() == c2.y();
+	public void setMapCoord(Coord mapCoord){
+		this.mapCoord = mapCoord;
 	}
 }

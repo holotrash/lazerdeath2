@@ -1,8 +1,8 @@
 /**
- *  DialogInfo.java
+ *  InteractedTile.java
  *  ----  
- *  An object containing all the information required to prepare a DialogBox
- *  to be shown.
+ *  A tile to be pasted over the map when a switch is thrown or a door
+ *  is opened.
  *  ---------------------------------------------------------------------
  *  This file is part of the computer game Lazerdeath2 
  *  Copyright 2016, Robert Watson Craig III
@@ -25,43 +25,20 @@
  * 
  */
 
-package com.holotrash.lazerdeath2;
+package com.holotrash.lazerdeath2.Maps;
 
-import java.util.ArrayList;
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.holotrash.lazerdeath2.LazerMath.Coord;
 
-public class DialogInfo {
+public class InteractedTile {
+	public Coord position; // position on map;
 
-	private ArrayList<ArrayList<String>> messages;
-	private String btn1;
-	private String btn2;
-	private DialogType type;
-	private Coord mapCoord;
+	public Sprite sprite;
 	
-	public DialogInfo(ArrayList<ArrayList<String>> messages, 
-			String btn1, String btn2, DialogType type){
-		this.messages = messages;
-		this.btn1 = btn1;
-		this.btn2 = btn2;
-		this.type = type;
-	}
-	
-	public ArrayList<ArrayList<String>> messages(){
-		return messages;
-	}
-	
-	public String btn1(){
-		return btn1;
-	}
-	public String btn2(){
-		return btn2;
-	}
-	public DialogType type(){
-		return type;
-	}
-	public Coord mapCoord(){
-		return mapCoord;
-	}
-	public void setMapCoord(Coord mapCoord){
-		this.mapCoord = mapCoord;
+	public InteractedTile(Coord position, Coord region, String mapTilesFile){
+		this.position = position;
+		this.sprite = new Sprite(new Texture(Gdx.files.internal(mapTilesFile)), 128*region.x(), 128*region.y(), 128, 128);
 	}
 }

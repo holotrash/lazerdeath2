@@ -57,6 +57,21 @@ import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.math.Vector3;
+import com.holotrash.lazerdeath2.Dialogs.DialogBox;
+import com.holotrash.lazerdeath2.Dialogs.DialogInfo;
+import com.holotrash.lazerdeath2.Dialogs.DialogType;
+import com.holotrash.lazerdeath2.Dialogs.MenuComponent;
+import com.holotrash.lazerdeath2.Dialogs.MenuDialog;
+import com.holotrash.lazerdeath2.Items.Item;
+import com.holotrash.lazerdeath2.LazerMath.Coord;
+import com.holotrash.lazerdeath2.Maps.HighlightTile;
+import com.holotrash.lazerdeath2.Maps.InteractedTile;
+import com.holotrash.lazerdeath2.Maps.Map;
+import com.holotrash.lazerdeath2.Units.Dude;
+import com.holotrash.lazerdeath2.Units.Enemy;
+import com.holotrash.lazerdeath2.Units.Unit;
+import com.holotrash.lazerdeath2.Units.Weapon;
+import com.holotrash.lazerdeath2.Units.WeaponType;
 
 public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
     
@@ -92,7 +107,7 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
     Coord lastClickedCell;
     Unit selectedUnit;
     
-    GameMaster gm;
+    public GameMaster gm;
 
     Sprite dudesTurnSprite;
     Sprite enemiesTurnSprite;
@@ -105,6 +120,7 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
     Sprite attackButton;
     Sprite exitGameButton;
     Sprite menuButton;
+    Item tempItem;
     
     ArrayList<String> currentUnitStats;
     ArrayDeque<String> uiConsole;
@@ -207,6 +223,8 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
         tiledMapRenderer.setView(camera);
         tiledMapRenderer.render();
         tiledMapRenderer.getBatch().setProjectionMatrix(camera.combined);
+        
+        
         for (Enemy enemy : enemies){
         	if (enemy.position().equals(lastClickedCell)){
         		selectedUnit = enemy;
@@ -240,6 +258,15 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
         for (InteractedTile it : interactedTiles){
     		spriteBatch.draw(it.sprite, 128*it.position.x(), 128*it.position.y());
     	}
+        //draw items
+
+        for (Coord coord : gm.itemWrangler.items.keySet()){
+        	tempItem = gm.itemWrangler.items.get(coord);
+        	spriteBatch.draw(tempItem.tileSprite(),
+        			128*coord.x(),
+        			128*coord.y());
+        }
+        
         //draw dudes and enemies
         for (int i=0;i<dudes.size();i++){
         	spriteBatch.draw(dudes.get(i).sprite(),
@@ -342,6 +369,15 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
         	spriteBatch.draw(menuDialog.background(), screenOrigin.x + 384, screenOrigin.y + 64);
         	spriteBatch.draw(menuDialog.buttons(), screenOrigin.x + 384, screenOrigin.y + 64);
         	spriteBatch.draw(menuDialog.tabArrows(), screenOrigin.x + 384, screenOrigin.y + 64);
+        	// show menuDialog components
+        	for(MenuComponent mc : menuDialog.menuComponents()){
+        		if (!Coord.coordsEqual(mc.position, gm.nullCoord)){
+        			spriteBatch.draw(mc.sprite,
+        				screenOrigin.x + mc.position.x(), 
+        				screenOrigin.y + mc.position.y());
+        		}
+        	}
+        		
         } else {
         
         	//Text overlay? dudes turn? enemies turn?
@@ -467,7 +503,8 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
         			System.out.println("Menu button 3 selected");
         			menuDialog.buttonThreePressed();
         	}
-    		
+    		// detect touchDown on menu components
+    		menuDialog.attemptComponentRegionHit(new Coord(screenX, screenY));
     	} else if (screenX > 15 // detect touchDown on left side ui buttons
     				&& screenX < 135
     				&& screenY > 25

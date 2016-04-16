@@ -45,6 +45,7 @@ public class GameMaster {
 	public Map mapData;
 	public TileMath tileMath;
 	private DialogLibrarian dialogLibrarian;
+	private NoteLibrarian noteLibrarian;
 	private lazerdeath2 game;
 	private ArrayList<Item> inventory;
 	
@@ -94,6 +95,12 @@ public class GameMaster {
 		 enemyAi = new EnemyAi(this);
 		 numTurns = 0;
 		 inventory = new ArrayList<Item>();
+		 try {
+			this.noteLibrarian = new NoteLibrarian();
+		} catch (IOException e) {
+			System.out.println("Failed to load notes from /data/notes.csv");
+			e.printStackTrace();
+		}
 	}
 	
 	public void clockTick(){
@@ -306,5 +313,8 @@ public class GameMaster {
 	
 	public void pickUpItem(Item item){
 		this.inventory.add(item);
+	}
+	public int turn(){
+		return numTurns;
 	}
 }

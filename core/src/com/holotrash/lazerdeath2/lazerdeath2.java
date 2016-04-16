@@ -442,7 +442,33 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
     		else if (screenX > 745 && screenX < 960 && screenY > 540 && screenY < 620)
     			this.executeDialogOption2();
     		
-    	} else if (screenX > 15 
+    	} else if (menuDialog.enabled()){
+    		 // detect touchDown on menuDialog buttons
+    		System.out.println("Menu Dialog Touchdown at: (" + screenX + "," + screenY + ")");
+    		if (screenX > 435
+    			&& screenX < 635
+    			&& screenY > 595
+    			&& screenY < 670){
+    			
+    			System.out.println("Menu button 1 selected");
+    			menuDialog.buttonOnePressed();
+    		} else if (screenX > 680
+        			&& screenX < 880
+        			&& screenY > 595
+        			&& screenY < 670){
+        			
+        			System.out.println("Menu button 2 selected");
+        			menuDialog.buttonTwoPressed();
+    		} else if (screenX > 930
+        			&& screenX < 1130
+        			&& screenY > 595
+        			&& screenY < 670){
+        			
+        			System.out.println("Menu button 3 selected");
+        			menuDialog.buttonThreePressed();
+        	}
+    		
+    	} else if (screenX > 15 // detect touchDown on left side ui buttons
     				&& screenX < 135
     				&& screenY > 25
     				&& screenY < 125){

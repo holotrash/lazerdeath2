@@ -296,9 +296,21 @@ public class Dude implements Unit, Mover{
 		this.pp = this.pp - amt;
 	}
 	
-	public void Consume(Consumable c){
-		for (ConsumableEffect e : c.effects()){
+	@Override
+	public void addEffects(ArrayList<ConsumableEffect> effects) {
+		for (ConsumableEffect e : effects){
+			e.expiration = e.duration + gm.turn();
 			this.effects.add(e);
+		}
+	}
+	
+	public void updateEffects(){
+		for (int i=0;i<this.effects.size();i++){
+			while (this.effects.get(i).expiration > gm.turn()){
+				this.effects.remove(i);
+				// kind of iffy about removing in this loop because it affects
+				// index/size but if there are problems maybe use another strategy
+			}
 		}
 	}
 }

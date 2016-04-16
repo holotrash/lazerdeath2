@@ -23,9 +23,13 @@ public class MenuDialog {
 	private Sprite groupButtons;
 	
 	private lazerdeath2 game;
+	private GameMaster gm;
 	
 	private MenuTab tab;
 	private boolean enabled;
+	private boolean btn1enabled;
+	private boolean btn2enabled;
+	private boolean btn3enabled;
 	
 	private int iIndex;
 	private int gIndex;
@@ -42,9 +46,16 @@ public class MenuDialog {
 		this.tab = MenuTab.INVENTORY;
 		this.buttons = inventoryButtons;
 		this.background = this.inventoryBackground;
+		this.btn1enabled = true;
+		this.btn2enabled = true;
+		this.btn3enabled = true;
 		
 		this.game = game;
+		this.gm = game.gm;
 		this.enabled = false;
+		this.btn1enabled = true;
+		this.btn2enabled = true;
+		this.btn3enabled = true;
 		
 		this.iIndex = 0;
 		this.gIndex = 0;
@@ -87,5 +98,22 @@ public class MenuDialog {
 	}
 	public void disable(){
 		this.enabled = false;
+	}
+
+	public void buttonOnePressed() {
+		// TODO Auto-generated method stub
+		
+	}
+	public void buttonTwoPressed() {
+		// TODO Auto-generated method stub
+		
+	}
+	public void buttonThreePressed() {
+		// TODO: finish the tabs
+		if (this.tab == MenuTab.INVENTORY){
+			// BUTTON3 = EXIT
+			this.disable();
+		}
+		
 	}
 }

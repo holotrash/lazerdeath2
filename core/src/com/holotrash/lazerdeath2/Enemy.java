@@ -34,6 +34,7 @@ import org.newdawn.slick.util.pathfinding.Mover;
 
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.holotrash.lazerdeath2.Items.ConsumableEffect;
 
 public class Enemy implements Unit, Mover{
 	private String name;
@@ -55,6 +56,7 @@ public class Enemy implements Unit, Mover{
 						  // towards the players units. if an enemy fails a guts check,
 						  // it may hide.
 	                           
+	private ArrayList<ConsumableEffect> effects;
 	
 	private Coord position; // position on Map
 	private Sprite sprite;
@@ -256,5 +258,23 @@ public class Enemy implements Unit, Mover{
 	@Override
 	public int ap() {
 		return ap;
+	}
+
+	@Override
+	public void addEffects(ArrayList<ConsumableEffect> effects) {
+		for (ConsumableEffect e : effects){
+			e.expiration = e.duration + gm.turn();
+			this.effects.add(e);
+		}
+	}
+	
+	public void updateEffects(){
+		for (int i=0;i<this.effects.size();i++){
+			while (this.effects.get(i).expiration > gm.turn()){
+				this.effects.remove(i);
+				// kind of iffy about removing in this loop because it affects
+				// index/size but if there are problems maybe use another strategy
+			}
+		}
 	}
 }

@@ -37,6 +37,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import org.newdawn.slick.util.pathfinding.*;
+import com.holotrash.lazerdeath2.Items.Container;
+import com.holotrash.lazerdeath2.Items.Item;
 
 public class Map implements TileBasedMap{
 
@@ -48,7 +50,11 @@ public class Map implements TileBasedMap{
 	public Coord maxCell;          // map dimensions defined by the cell with the maximum x and y value
 	public HashMap<Coord, MapCell> mapData;
 	public ArrayList<WinCondition> winConditions;
+	public ArrayList<Container> containers;
+	public ArrayList<Item> items;
 	private lazerdeath2 game;	
+	private ItemWrangler itemWrangler;
+	
 	
 	private Coord aCoord;
 	

@@ -38,6 +38,7 @@ package com.holotrash.lazerdeath2;
 import java.util.ArrayList;
 
 import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.holotrash.lazerdeath2.Items.ConsumableEffect;
 
 public interface Unit {
 	
@@ -78,4 +79,6 @@ public interface Unit {
 	public int ap();
 	
 	public boolean attack(Unit unit);
+
+	public void addEffects(ArrayList<ConsumableEffect> effects);
 }

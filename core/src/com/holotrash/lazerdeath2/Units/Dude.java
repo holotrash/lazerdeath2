@@ -36,6 +36,7 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.holotrash.lazerdeath2.GameMaster;
 import com.holotrash.lazerdeath2.Items.Consumable;
 import com.holotrash.lazerdeath2.Items.ConsumableEffect;
+import com.holotrash.lazerdeath2.Items.Item;
 import com.holotrash.lazerdeath2.LazerMath.Coord;
 
 public class Dude implements Unit, Mover{
@@ -96,16 +97,7 @@ public class Dude implements Unit, Mover{
 		this.dice = new Random();
 		this.weapon = null;
 		this.glamourShot = glamourShot;
-		this.displayStatistics = new ArrayList<String>();
-		displayStatistics.add("NAME: " + this.name.toUpperCase());
-		displayStatistics.add("HP: " + this.hp + "   ACCURACY: " + this.accuracy);
-		displayStatistics.add("SPEED: " + this.speed + "    AP: " + this.ap);
-		displayStatistics.add("DODGE: " + this.dodge + " STRENGTH: " + this.strength);
-		if (this.weapon == null){
-			displayStatistics.add("WEAPON: UNARMED");
-		} else {
-			displayStatistics.add("WEAPON: " + this.weapon.toString().toUpperCase());
-		}
+		this.updateStatusString();
 
 		gm.mapData.setTileOccupied(position, true);
 		this.effects = new ArrayList<ConsumableEffect>();
@@ -118,8 +110,18 @@ public class Dude implements Unit, Mover{
 	@Override
 	public void takeDmg(int dmg){
 		this.hp = this.hp - dmg;
+		if (this.hp < 0)
+			this.hp = 0;
 		displayStatistics.set(1, "HP: " + this.hp + "   ACCURACY: " + this.accuracy);
 		
+	}
+	
+	@Override
+	public void heal(int hp){
+		this.hp = this.hp + hp;
+		if (this.hp > this.maxHp){
+			this.hp = this.maxHp;
+		}
 	}
 	
 	@Override
@@ -222,7 +224,9 @@ public class Dude implements Unit, Mover{
 				} else {
 					gm.printToConsole(this.name + " killed " + unit.name() + "!");
 				}
-				
+				if (this.weapon.isPsionic()){
+					this.spendPP(1);
+				}
 			} else {
 				attackHit = false;
 				gm.printToConsole(this.name + " misses!");
@@ -231,6 +235,11 @@ public class Dude implements Unit, Mover{
 			gm.printToConsole("Not enough AP for " + this.name + " to attack!");
 		}
 		return attackHit;
+	}
+
+	private void spendPP(int amt) {
+		this.pp = this.pp - amt;
+		this.updateStatusString();
 	}
 
 	@Override
@@ -303,13 +312,34 @@ public class Dude implements Unit, Mover{
 	@Override
 	public void addEffects(ArrayList<ConsumableEffect> effects) {
 		for (ConsumableEffect e : effects){
-			e.expiration = e.duration + gm.turn();
-			this.effects.add(e);
+			if (e.duration == -1){
+				this.addPermEffect(e);
+			} else {
+				e.expiration = e.duration + gm.turn();
+				this.effects.add(e);
+			}
+			
 		}
 	}
 	
+	private void addPermEffect(ConsumableEffect e) {
+		if (e.statistic == UnitStatistic.HP){
+			this.heal(e.modifier);	
+		} else if (e.statistic == UnitStatistic.PP){
+			this.regainPP(e.modifier);
+		}
+		
+	}
+
+	private void regainPP(int modifier) {
+		this.pp = this.pp + modifier;
+		if (this.pp > this.maxPp){
+			this.pp = this.maxPp;
+		}
+	}
+
 	public void updateEffects(){
-		for (int i=0;i<this.effects.size();i++){
+	    for (int i=0;i<this.effects.size();i++){
 			while (this.effects.get(i).expiration > gm.turn()){
 				this.effects.remove(i);
 				// kind of iffy about removing in this loop because it affects
@@ -324,5 +354,30 @@ public class Dude implements Unit, Mover{
 			gm.inventory.add(gm.itemWrangler.items.get(position));
 			gm.itemWrangler.items.remove(position);
 		}
+	}
+
+	public void useItem(Item item) {
+		if(item instanceof Consumable){
+			this.addEffects(((Consumable)item).effects());
+			
+		}
+		
+	}
+	
+	private void updateStatusString(){
+		this.displayStatistics = new ArrayList<String>();
+		displayStatistics.add("NAME: " + this.name.toUpperCase());
+		displayStatistics.add("HP: " + this.hp + "   ACCURACY: " + this.accuracy);
+		displayStatistics.add("SPEED: " + this.speed + "    AP: " + this.ap);
+		displayStatistics.add("DODGE: " + this.dodge + " STRENGTH: " + this.strength);
+		if (this.weapon == null){
+			displayStatistics.add("WEAPON: UNARMED");
+		} else {
+			displayStatistics.add("WEAPON: " + this.weapon.toString().toUpperCase());
+		}
+	}
+
+	public Weapon weapon() {
+		return this.weapon;
 	}
 }

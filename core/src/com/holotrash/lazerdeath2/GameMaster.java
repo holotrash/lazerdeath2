@@ -341,8 +341,4 @@ public class GameMaster {
 		return numTurns;
 	}
 
-	public void useItemDialog(int inventoryCursorIndex) {
-		// TODO Auto-generated method stub
-		
-	}
 }

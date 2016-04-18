@@ -44,6 +44,7 @@ public class Enemy implements Unit, Mover{
 	// statistics
 	
 	private int hp;       // hit points
+	private int maxHp;
 	private int ap;
 	private int speed;    // number of tiles that a Dude can move per turn
 	private int strength;
@@ -91,6 +92,7 @@ public class Enemy implements Unit, Mover{
 	this.name = name;
 	sprite = new Sprite(texture, 0, 0, 128, 128);
 	this.hp = hp;
+	this.maxHp = hp;
 	this.speed = speed;
 	this.strength = strength;
 	this.dodge = dodge;
@@ -121,7 +123,17 @@ public class Enemy implements Unit, Mover{
 	
 	public void takeDmg(int dmg){
 		this.hp = this.hp - dmg;
+		if (this.hp < 0)
+			this.hp = 0;
 		displayStats.set(1, "HP: " + this.hp);
+	}
+	
+	@Override
+	public void heal(int hp){
+		this.hp = this.hp + hp;
+		if (this.hp > this.maxHp){
+			this.hp = this.maxHp;
+		}
 	}
 	
 	public int hp(){

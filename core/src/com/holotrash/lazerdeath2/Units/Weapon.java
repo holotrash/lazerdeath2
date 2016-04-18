@@ -55,103 +55,103 @@ public class Weapon {
 			this.minDamage = 3;
 			this.dmgRange = 3;
 			this.healing = false;
-			this.name = "Lv1 Lazer";
+			this.name = "Lazer";
 		} else if (type == WeaponType.LAZER_LV2){
 			this.range = 7;
 			this.minDamage = 4;
 			this.dmgRange = 6;
 			this.healing = false;
-			this.name = "Lv2 Lazer";
+			this.name = "Lazer";
 		} else if (type == WeaponType.LAZER_LV3){
 			this.range = 8;
 			this.minDamage = 8;
 			this.dmgRange = 10;
 			this.healing = false;
-			this.name = "Lv3 Lazer";
+			this.name = "Lazer";
 		} else if (type == WeaponType.PARTICLE_BEAM_LV1) {
 			this.range = 8;
 			this.minDamage = 6;
 			this.dmgRange = 4;
 			this.healing = false;
-			this.name = "Lv1 Particle Beam";
+			this.name = "Particle Beam";
 		} else if (type == WeaponType.PARTICLE_BEAM_LV2) {
 			this.range = 9;
 			this.minDamage = 9;
 			this.dmgRange = 3;
 			this.healing = false;
-			this.name = "Lv2 Particle Beam";
+			this.name = "Particle Beam";
 		} else if (type == WeaponType.PARTICLE_BEAM_LV3) {
 			this.range = 12;
 			this.minDamage = 10;
 			this.dmgRange = 5;
 			this.healing = false;
-			this.name = "Lv3 Particle Beam";
+			this.name = "Particle Beam";
 		} else if (type == WeaponType.PHASE_BLUDGEON_LV1) {
 			this.range = 1;
 			this.minDamage = 3;
 			this.dmgRange = 2;
 			this.healing = false;
-			this.name = "Lv1 Phase Bludgeon";
+			this.name = "Phase Bludgeon";
 		} else if (type == WeaponType.PHASE_BLUDGEON_LV2) {
 			this.range = 1;
 			this.minDamage = 5;
 			this.dmgRange = 3;
 			this.healing = false;
-			this.name = "Lv2 Phase Bludgeon";
+			this.name = "Phase Bludgeon";
 		} else if (type == WeaponType.PHASE_BLUDGEON_LV3) {
 			this.range = 2;
 			this.minDamage = 7;
 			this.dmgRange = 4;
 			this.healing = false;
-			this.name = "Lv3 Phase Bludgeon";
+			this.name = "Phase Bludgeon";
 		} else if (type == WeaponType.PSIONIC_WILL_LV1) {
 			this.range = 7;
 			this.minDamage = 3;
 			this.dmgRange = 7;
 			this.healing = false;
-			this.name = "Lv1 Psionic Will";
+			this.name = "Psionic Will";
 		} else if (type == WeaponType.PSIONIC_WILL_LV2) {
 			this.range = 8;
 			this.minDamage = 6;
 			this.dmgRange = 9;
 			this.healing = false;
-			this.name = "Lv2 Psionic Will";
+			this.name = "Psionic Will";
 		} else if (type == WeaponType.PSIONIC_WILL_LV3) {
 			this.range = 9;
 			this.minDamage = 7;
 			this.dmgRange = 13;
 			this.healing = false;
-			this.name = "Lv3 Psionic Will";
+			this.name = "Psionic Will";
 		} else if (type == WeaponType.LAZER_FIST_LV1) {
 			this.range = 1;
 			this.minDamage = 8;
 			this.dmgRange = 4;
 			this.healing = false;
-			this.name = "Lv1 Lazer Fist";
+			this.name = "Lazer Fist";
 		} else if (type == WeaponType.LAZER_FIST_LV2) {
 			this.range = 1;
 			this.minDamage = 15;
 			this.dmgRange = 2;
 			this.healing = false;
-			this.name = "Lv2 Lazer Fist";
+			this.name = "Lazer Fist";
 		} else if (type == WeaponType.TISSUE_REPLICATOR_LV1) {
 			this.range = 1;
 			this.minDamage = 4;
 			this.dmgRange = 2;
 			this.healing = true;
-			this.name = "Lv1 Tissue Replcatr";
+			this.name = "Tissue Replcatr";
 		} else if (type == WeaponType.TISSUE_REPLICATOR_LV2) {
 			this.range = 1;
 			this.minDamage = 5;
 			this.dmgRange = 3;
 			this.healing = true;
-			this.name = "Lv2 Tissue Replcatr";
+			this.name = "Tissue Replcatr";
 		} else if (type == WeaponType.TISSUE_REPLICATOR_LV3) {
 			this.range = 1;
 			this.minDamage = 9;
 			this.dmgRange = 4;
 			this.healing = true;
-			this.name = "Lv3 Tissue Replicatr";
+			this.name = "Tissue Replicatr";
 		}
 	}
 

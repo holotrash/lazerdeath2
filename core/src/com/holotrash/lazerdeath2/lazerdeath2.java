@@ -57,11 +57,14 @@ import com.badlogic.gdx.maps.tiled.TiledMap;
 import com.badlogic.gdx.maps.tiled.TmxMapLoader;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.math.Vector3;
+import com.holotrash.lazerdeath2.Dialogs.BooleanDialogType;
 import com.holotrash.lazerdeath2.Dialogs.DialogBox;
 import com.holotrash.lazerdeath2.Dialogs.DialogInfo;
 import com.holotrash.lazerdeath2.Dialogs.DialogType;
 import com.holotrash.lazerdeath2.Dialogs.MenuComponent;
 import com.holotrash.lazerdeath2.Dialogs.MenuDialog;
+import com.holotrash.lazerdeath2.Dialogs.MenuLabel;
+import com.holotrash.lazerdeath2.Dialogs.SimpleBooleanDialog;
 import com.holotrash.lazerdeath2.Items.Item;
 import com.holotrash.lazerdeath2.LazerMath.Coord;
 import com.holotrash.lazerdeath2.Maps.HighlightTile;
@@ -81,7 +84,6 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
     TiledMap tiledMap;
     OrthographicCamera camera;
     OrthogonalTiledMapRenderer tiledMapRenderer;
-
     
     ArrayList<Dude> dudes;
     ArrayList<Enemy> enemies;
@@ -96,6 +98,7 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
     BitmapFont uiFont;
     GlyphLayout layout;
     MenuDialog menuDialog;
+    SimpleBooleanDialog ynDialog;
     
     String temp;
     Vector3 tempV3;
@@ -182,6 +185,7 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
         dialogFont = new BitmapFont(Gdx.files.internal("fonts/bank.fnt"));
         uiFont = new BitmapFont(Gdx.files.internal("fonts/hack.fnt"));
         layout = new GlyphLayout();
+        this.ynDialog = new SimpleBooleanDialog("Do you wanna fuck?", "Jeah!", "Nah...");
         gm.showLevelStartDialog();
         selectedUnit = null;
         
@@ -371,13 +375,46 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
         	spriteBatch.draw(menuDialog.tabArrows(), screenOrigin.x + 384, screenOrigin.y + 64);
         	// show menuDialog components
         	for(MenuComponent mc : menuDialog.menuComponents()){
-        		if (!Coord.coordsEqual(mc.position, gm.nullCoord)){
+        		if (!Coord.coordsEqual(mc.position, GameMaster.nullCoord)){
         			spriteBatch.draw(mc.sprite,
         				screenOrigin.x + mc.position.x(), 
         				screenOrigin.y + mc.position.y());
         		}
         	}
+        	// show menu labels
+        	for (MenuLabel ml : menuDialog.menuLabels()){
+        		if (!Coord.coordsEqual(ml.position, GameMaster.nullCoord)){
+        			dialogFont.draw(spriteBatch, 
+        					ml.text, 
+        					screenOrigin.x + ml.position.x(), 
+        					screenOrigin.y + ml.position.y());
+        		}
+        	}
         		
+        } else if (this.ynDialog.enabled()){
+        	//show ynDialog
+        	if(!ynDialog.resultRecorded()){
+        		this.screenOrigin = new Vector3(0,768,0);
+        		this.screenOrigin = camera.unproject(this.screenOrigin);
+        		spriteBatch.draw(ynDialog.background(), 
+            					screenOrigin.x + 500,
+            					screenOrigin.y + 300);
+        		spriteBatch.draw(ynDialog.buttons(),
+            					screenOrigin.x + 500,
+            					screenOrigin.y + 300);
+        		dialogFont.draw(spriteBatch,
+        						ynDialog.text(),
+        						screenOrigin.x + 510,
+        						screenOrigin.y + 525);
+        	} else {
+        		if (this.ynDialog.type() == BooleanDialogType.EXIT_GAME){
+        			if(ynDialog.result()){       			
+        				Gdx.app.exit();
+        			} else {
+        				ynDialog.disable();
+        			}     	
+        		}
+        	}
         } else {
         
         	//Text overlay? dudes turn? enemies turn?
@@ -390,6 +427,7 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
         		spriteBatch.draw(this.enemiesTurnSprite, tempV3.x + 350, tempV3.y + 275);
         		overlayFadeCounter--;
         	}
+        	
         }
         spriteBatch.end();
         if (!dialogBox.enabled()){	
@@ -478,7 +516,19 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
     		else if (screenX > 745 && screenX < 960 && screenY > 540 && screenY < 620)
     			this.executeDialogOption2();
     		
+    	} else if (ynDialog.enabled()) {
+    		System.out.println("ynDialog touchdown at: (" + screenX + "," + screenY + ")");
+    		if (ynDialog.button1Hit(screenX, screenY)){
+    			System.out.println("ynDialog button 1 pressed");
+    			ynDialog.recordResult(true);
+    		} else if (ynDialog.button2Hit(screenX, screenY)){
+    			System.out.println("ynDialog button 2 pressed");
+    			ynDialog.recordResult(false);
+    		}
+    		
+    		
     	} else if (menuDialog.enabled()){
+    	
     		 // detect touchDown on menuDialog buttons
     		System.out.println("Menu Dialog Touchdown at: (" + screenX + "," + screenY + ")");
     		if (screenX > 435
@@ -539,7 +589,14 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
 
     		System.out.println("Exit.");
     		System.out.println("last clicked pixel: (" + screenX + "," + screenY + ")");
-    		Gdx.app.exit();
+    		
+    		this.ynDialog.setText("Are you sure? Unsaved progress will be lost.");
+    		this.ynDialog.setChoice1("YES");
+    		this.ynDialog.setChoice2("NO");
+    		this.ynDialog.setType(BooleanDialogType.EXIT_GAME);
+    		this.ynDialog.resetResult();
+    		this.ynDialog.enable();
+    		
     	}else if (this.playerAttacking){
     		lastClickedCell = pixelToCell(vector3ToCoord(camera.unproject(new Vector3(screenX, screenY, 0))));
     		boolean foundAttack = false;
@@ -561,7 +618,6 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
     		}
     		
     	} else {
-    		
     		
     		System.out.println("last clicked pixel: (" + screenX + "," + screenY + ")");
     		lastClickedCell = pixelToCell(vector3ToCoord(camera.unproject(new Vector3(screenX, screenY, 0))));

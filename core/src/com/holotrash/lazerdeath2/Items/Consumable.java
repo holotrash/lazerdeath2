@@ -51,8 +51,7 @@ public class Consumable implements Item{
 	}
 
 	public ArrayList<ConsumableEffect> effects() {
-		// TODO Auto-generated method stub
-		return null;
+		return this.effects;
 	}
 	
 }

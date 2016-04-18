@@ -53,6 +53,8 @@ public interface Unit {
 	
 	public void takeDmg(int dmg);
 	
+	public void heal(int hp);
+	
 	public int hp();
 	
 	public int speed();

@@ -40,9 +40,12 @@ import com.holotrash.lazerdeath2.Dialogs.DialogInfo;
 import com.holotrash.lazerdeath2.Dialogs.DialogLibrarian;
 import com.holotrash.lazerdeath2.Items.Item;
 import com.holotrash.lazerdeath2.Items.ItemWrangler;
+import com.holotrash.lazerdeath2.Items.Key;
+import com.holotrash.lazerdeath2.Items.NoKey;
 import com.holotrash.lazerdeath2.Items.NoteLibrarian;
 import com.holotrash.lazerdeath2.LazerMath.Coord;
 import com.holotrash.lazerdeath2.LazerMath.TileMath;
+import com.holotrash.lazerdeath2.Maps.Door;
 import com.holotrash.lazerdeath2.Maps.Map;
 import com.holotrash.lazerdeath2.Maps.WinCondition;
 import com.holotrash.lazerdeath2.Maps.WinType;
@@ -62,6 +65,7 @@ public class GameMaster {
 	public ItemWrangler itemWrangler;
 	private lazerdeath2 game;
 	public ArrayList<Item> inventory;
+	private NoKey noKey;
 	
 	private EnemyAi enemyAi;
 	public Random dice;
@@ -82,6 +86,7 @@ public class GameMaster {
 		this.clock = 0;
 		this.game = game;
 		this.mapData = mapData;
+		this.noKey = new NoKey();
 		this.dudesWon = false;
 		this.enemiesWon = false;
 		this.dudesTurn = false;
@@ -155,6 +160,7 @@ public class GameMaster {
 		}
 		this.numTurns++;
 		game.uiConsole.push("Round " + numTurns + ".");
+		game.selectedUnit = null;
 		game.overlayFadeCounter = lazerdeath2.OVERLAY_FADE_TIME;
 	}
 	
@@ -164,6 +170,7 @@ public class GameMaster {
 	public void takeEnemiesTurn(){
 		enemiesTurn = true;
 		dudesTurn = false;
+		game.selectedUnit = null;
 		game.overlayFadeCounter = lazerdeath2.OVERLAY_FADE_TIME;
 	}
 	
@@ -192,9 +199,24 @@ public class GameMaster {
 	}
 
 	public void openDoor(Coord lastClickedCell) {
-		DialogInfo di = dialogLibrarian.getDialogInfo(lastClickedCell.toString());
-		di.setMapCoord(lastClickedCell);
-		game.showDialog(di);
+		Door door = mapData.doors.get(lastClickedCell);
+		boolean unlocked = false;
+		for (Item item : this.inventory){
+			if(item.isKey() && door.lock.unlocks((Key)item)){
+				unlocked = true;
+				this.printToConsole("Door unlocked.");
+			}
+		}
+		if(door.lock.unlocks(noKey)){
+			unlocked = true;
+		}
+		if (unlocked){
+			DialogInfo di = dialogLibrarian.getDialogInfo(lastClickedCell.toString());
+			di.setMapCoord(lastClickedCell);
+			game.showDialog(di);
+		} else {
+			this.printToConsole("This door is locked.");
+		}
 	}
 
 	public boolean gameOver() {
@@ -335,7 +357,11 @@ public class GameMaster {
 	}
 	
 	public void pickUpItem(Item item){
-		this.inventory.add(item);
+		if (this.inventory.size() < 16){
+			this.inventory.add(item);
+		} else {
+			this.printToConsole("Inventory full.");
+		}
 	}
 	public int turn(){
 		return numTurns;

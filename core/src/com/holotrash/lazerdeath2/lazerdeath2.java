@@ -66,6 +66,8 @@ import com.holotrash.lazerdeath2.Dialogs.MenuDialog;
 import com.holotrash.lazerdeath2.Dialogs.MenuLabel;
 import com.holotrash.lazerdeath2.Dialogs.SimpleBooleanDialog;
 import com.holotrash.lazerdeath2.Items.Item;
+import com.holotrash.lazerdeath2.Items.KeyMaster;
+import com.holotrash.lazerdeath2.Items.TumblerKey;
 import com.holotrash.lazerdeath2.LazerMath.Coord;
 import com.holotrash.lazerdeath2.Maps.HighlightTile;
 import com.holotrash.lazerdeath2.Maps.InteractedTile;
@@ -123,6 +125,8 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
     Sprite attackButton;
     Sprite exitGameButton;
     Sprite menuButton;
+    Sprite unitCursor;
+    
     Item tempItem;
     
     ArrayList<String> currentUnitStats;
@@ -174,7 +178,7 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
         this.attackButton = new Sprite(new Texture(Gdx.files.internal("gfx/attack_button.png")));
         this.exitGameButton = new Sprite(new Texture(Gdx.files.internal("gfx/exit_game.png")));
         this.menuButton = new Sprite(new Texture(Gdx.files.internal("gfx/menu_button.png")));
-        
+        this.unitCursor = new Sprite(new Texture(Gdx.files.internal("gfx/unit_cursor.png")));
         tiledMap = new TmxMapLoader().load("gfx/" + mapData.tmxFileName + ".tmx");
         spriteBatch = new SpriteBatch();
         highlightBatch = new SpriteBatch();
@@ -185,7 +189,7 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
         dialogFont = new BitmapFont(Gdx.files.internal("fonts/bank.fnt"));
         uiFont = new BitmapFont(Gdx.files.internal("fonts/hack.fnt"));
         layout = new GlyphLayout();
-        this.ynDialog = new SimpleBooleanDialog("Do you wanna fuck?", "Jeah!", "Nah...");
+        this.ynDialog = new SimpleBooleanDialog("Will you eat my shit?", "Answer immediately!", "", "Jeah!", "Nah...");
         gm.showLevelStartDialog();
         selectedUnit = null;
         
@@ -230,7 +234,8 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
         
         
         for (Enemy enemy : enemies){
-        	if (enemy.position().equals(lastClickedCell)){
+        	if ((selectedUnit == null || !enemy.name().equals(selectedUnit.name())) 
+        			&& enemy.position().equals(lastClickedCell)){
         		selectedUnit = enemy;
         		System.out.println("selectedUnit equals enemy: " + enemy.name());
         	}
@@ -238,7 +243,8 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
         }
         
         for (Dude dude : dudes){
-        	if (dude.position().equals(lastClickedCell)){
+        	if ((selectedUnit == null || !dude.name().equals(selectedUnit.name())) 
+        			&& dude.position().equals(lastClickedCell)){
 				selectedUnit = dude;
         		System.out.println("selectedUnit equals dude: " + dude.name());
         	}
@@ -284,6 +290,14 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
         					 128*(enemies.get(i).position().x()),
         				     128*(enemies.get(i).position().y()));
         }
+        
+        //draw cursor
+        if(gm.dudesTurn() && selectedUnit != null){
+        	spriteBatch.draw(this.unitCursor,
+        			128*selectedUnit.position().x(), 
+        			128*selectedUnit.position().y());
+        }
+        
         if (gm.dudesTurn()){
         	//spriteBatch.setColor(hlColor);
         	for (Coord c : highlightTiles.keySet()){
@@ -403,9 +417,25 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
             					screenOrigin.x + 500,
             					screenOrigin.y + 300);
         		dialogFont.draw(spriteBatch,
-        						ynDialog.text(),
-        						screenOrigin.x + 510,
+        						ynDialog.line1(),
+        						screenOrigin.x + 535,
         						screenOrigin.y + 525);
+        		dialogFont.draw(spriteBatch,
+        						ynDialog.line2(),
+        						screenOrigin.x + 535,
+        						screenOrigin.y + 490);
+        		dialogFont.draw(spriteBatch,
+								ynDialog.line3(),
+								screenOrigin.x + 535,
+								screenOrigin.y + 455);
+        		dialogFont.draw(spriteBatch,
+        						ynDialog.choice1(),
+        						screenOrigin.x + 600,
+        						screenOrigin.y + 380);
+        		dialogFont.draw(spriteBatch,
+							ynDialog.choice2(),
+							screenOrigin.x + 850,
+							screenOrigin.y + 380);
         	} else {
         		if (this.ynDialog.type() == BooleanDialogType.EXIT_GAME){
         			if(ynDialog.result()){       			
@@ -590,7 +620,9 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
     		System.out.println("Exit.");
     		System.out.println("last clicked pixel: (" + screenX + "," + screenY + ")");
     		
-    		this.ynDialog.setText("Are you sure? Unsaved progress will be lost.");
+    		this.ynDialog.setLine1("Are you sure?");
+    		this.ynDialog.setLine2("Unsaved progress will");
+    		this.ynDialog.setLine3("be lost.");
     		this.ynDialog.setChoice1("YES");
     		this.ynDialog.setChoice2("NO");
     		this.ynDialog.setType(BooleanDialogType.EXIT_GAME);
@@ -737,19 +769,22 @@ public class lazerdeath2 extends ApplicationAdapter implements InputProcessor {
     	enemies.add(new Enemy("Cop1", 
     			copTexture, 25, 3, 25, 50, 75, 15, 75, 
     			new Coord(6,2), 
-    			new Weapon(WeaponType.PHASE_BLUDGEON_LV1), 
+    			new Weapon(WeaponType.PHASE_BLUDGEON_LV1),
+    			null,
     			copGlamourShot,
     			gm));
     	enemies.add(new Enemy("Cop2", 
     			copTexture, 25, 3, 25, 50, 75, 25, 85, 
     			new Coord(7,6), 
-    			new Weapon(WeaponType.PHASE_BLUDGEON_LV1), 
+    			new Weapon(WeaponType.PHASE_BLUDGEON_LV1),
+    			null,
     			copGlamourShot,
     			gm));
     	enemies.add(new Enemy("Cop3", 
     			copTexture, 25, 3, 25, 50, 75, 10, 64, 
     			new Coord(3,8), 
-    			new Weapon(WeaponType.PHASE_BLUDGEON_LV1), 
+    			new Weapon(WeaponType.PHASE_BLUDGEON_LV1),
+    			KeyMaster.getTumblerKey(gm, 0),
     			copGlamourShot,
     			gm));
     }

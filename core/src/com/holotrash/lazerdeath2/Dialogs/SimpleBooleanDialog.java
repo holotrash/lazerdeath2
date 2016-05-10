@@ -12,7 +12,9 @@ public class SimpleBooleanDialog {
 	private boolean result;
 	private boolean resultRecorded;
 	
-	private String text;
+	private String line1;
+	private String line2;
+	private String line3;
 	private String choice1;
 	private String choice2;
 	
@@ -22,9 +24,12 @@ public class SimpleBooleanDialog {
 	private Region btn1region;
 	private Region btn2region;
 	private BooleanDialogType type;
+
 	
-	public SimpleBooleanDialog(String text, String choice1, String choice2){
-		this.text = text;
+	public SimpleBooleanDialog(String line1, String line2, String line3, String choice1, String choice2){
+		this.line1 = line1;
+		this.line2 = line2;
+		this.line3 = line3;
 		this.choice1 = choice1;
 		this.choice2 = choice2;
 		this.type = null;
@@ -52,8 +57,16 @@ public class SimpleBooleanDialog {
 		return this.enabled;
 	}
 	
-	public String text(){
-		return this.text;
+	public String line1(){
+		return this.line1;
+	}
+	
+	public String line2(){
+		return this.line2;
+	}
+	
+	public String line3(){
+		return this.line3;
 	}
 	
 	public String choice1(){
@@ -89,8 +102,16 @@ public class SimpleBooleanDialog {
 		this.resultRecorded = true;
 	}
 	
-	public void setText(String newText){
-		this.text = newText;
+	public void setLine1(String newText){
+		this.line1 = newText;
+	}
+	
+	public void setLine2(String newText){
+		this.line2 = newText;
+	}
+	
+	public void setLine3(String newText){
+		this.line3 = newText;
 	}
 	
 	public void setChoice1(String newChoice1){

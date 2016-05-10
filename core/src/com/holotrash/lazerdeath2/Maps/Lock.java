@@ -1,14 +1,10 @@
 package com.holotrash.lazerdeath2.Maps;
 
-public class Lock {
+import com.holotrash.lazerdeath2.Items.Key;
+
+public interface Lock {
+
+	public boolean isElectronic();
+	public boolean unlocks(Key key);
 	
-	private int tumbler;
-	
-	public Lock(int tumbler){
-		this.tumbler = tumbler;
-	}
-	
-	public int tumbler(){
-		return this.tumbler;
-	}
 }

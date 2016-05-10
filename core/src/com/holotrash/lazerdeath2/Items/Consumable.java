@@ -53,5 +53,10 @@ public class Consumable implements Item{
 	public ArrayList<ConsumableEffect> effects() {
 		return this.effects;
 	}
+
+	@Override
+	public boolean isKey() {
+		return false;
+	}
 	
 }

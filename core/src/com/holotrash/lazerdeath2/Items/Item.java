@@ -14,4 +14,6 @@ public interface Item {
 	public Sprite invSprite();
 	
 	public void beUsed(Unit unit);
+	
+	public boolean isKey();
 }

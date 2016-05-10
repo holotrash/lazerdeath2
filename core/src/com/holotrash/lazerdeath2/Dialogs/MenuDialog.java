@@ -247,7 +247,7 @@ public class MenuDialog {
 					this.tabRight();
 				}
 			} else if (this.tab == MenuTab.USE_ITEM){
-				System.out.println("Clicked on unit " + component + "in use item menu dialog");
+				System.out.println("Clicked on unit " + component + " in use item menu dialog");
 				this.setUseItemCursor(component);
 			}
 		}
@@ -255,6 +255,7 @@ public class MenuDialog {
 	
 	private void setUseItemCursor(int positionIndex) {
 		if (positionIndex != MenuDialog.NULL_INDEX){
+			this.cursorIndex = positionIndex;
 			this.cursorPosition = this.useItemCursorPositionList.get(positionIndex);
 		}
 		this.refreshUseItem();

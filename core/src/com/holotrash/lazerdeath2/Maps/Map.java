@@ -55,6 +55,7 @@ public class Map implements TileBasedMap{
 	public ArrayList<WinCondition> winConditions;
 	public ArrayList<Container> containers;
 	public ArrayList<Item> items;
+	public HashMap<Coord, Door> doors;
 	private lazerdeath2 game;		
 	
 	private Coord aCoord;
@@ -63,6 +64,7 @@ public class Map implements TileBasedMap{
 	public Map(int level, lazerdeath2 game) throws IOException{
 		this.game = game;
 		mapData = new HashMap<Coord, MapCell>();
+		this.doors = new HashMap<Coord, Door>();
 		this.winConditions = new ArrayList<WinCondition>();
 		@SuppressWarnings("resource")
 		BufferedReader reader = new BufferedReader(new FileReader("data/level" + (new Integer(level).toString()) + ".lvl"));
@@ -117,7 +119,7 @@ public class Map implements TileBasedMap{
 		}
 		//read map cells
 		
-		while ((line = reader.readLine()) != null){
+		while ((line = reader.readLine()).trim().compareTo("END_CELLS") != 0){
 			split = line.split("#");
 			coordSplit = split[0].split(",");
 			dataSplit = split[1].split(",");
@@ -168,6 +170,23 @@ public class Map implements TileBasedMap{
 			mapData.put(aCoord, new MapCell(aCoord, traversable, cover, interactable, door, region));
 			
 		} // end while
+		
+		// load doors
+		while ((line = reader.readLine()).trim().compareTo("END_DOORS") != 0){
+			split = line.split(",");
+			aCoord = new Coord(Integer.parseInt(split[0]), Integer.parseInt(split[1]));
+			if (split[2].trim().equals("LOCKED")){
+				if(split[3].trim().equals("ELECTRONIC")){
+					doors.put(aCoord, new Door(new ElectronicLock(
+							Integer.parseInt(split[4].trim()))));
+				} else {
+					doors.put(aCoord, new Door(new TumblerLock(
+							Integer.parseInt(split[4].trim()))));
+				}
+			} else { // door unlocked
+				doors.put(aCoord, new Door(new NoLock()));
+			}
+		}
 		reader.close();
 	} // end constructor
 

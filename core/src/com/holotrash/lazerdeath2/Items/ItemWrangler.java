@@ -89,7 +89,7 @@ public class ItemWrangler {
 					tempString = "" + tempInt;
 				}
 				
-				tempItem = new Key(gm, 
+				tempItem = new TumblerKey(gm, 
 						tempInt,
 						"A key", 
 						"A key", 
@@ -167,7 +167,7 @@ public class ItemWrangler {
 						tempString = "" + tempInt;
 					}
 					
-					tempItem = new Key(gm, 
+					tempItem = new TumblerKey(gm, 
 							tempInt,
 							"A key", 
 							"A key", 

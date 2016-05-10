@@ -36,6 +36,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.holotrash.lazerdeath2.GameMaster;
 import com.holotrash.lazerdeath2.Items.ConsumableEffect;
+import com.holotrash.lazerdeath2.Items.Item;
 import com.holotrash.lazerdeath2.LazerMath.Coord;
 
 public class Enemy implements Unit, Mover{
@@ -71,6 +72,8 @@ public class Enemy implements Unit, Mover{
 	private Random dice;
 	
 	private Weapon weapon;
+	private Item drop;
+	
 	private GameMaster gm;
 	
 	private ArrayList<String> displayStats;
@@ -86,6 +89,7 @@ public class Enemy implements Unit, Mover{
 		    int guts,
 		    Coord position,
 		    Weapon weapon,
+		    Item drop,
 		    Sprite glamourShot,
 		    GameMaster gm)
 	{
@@ -104,6 +108,7 @@ public class Enemy implements Unit, Mover{
 	this.hasAttacked = false;
 	this.dice = new Random();
 	this.weapon = weapon;
+	this.drop = drop;
 	this.glamourShot = glamourShot;
 	this.gm = gm;
 	this.ap = 2;
@@ -267,6 +272,9 @@ public class Enemy implements Unit, Mover{
 	@Override
 	public void die(){
 		gm.mapData.setTileOccupied(this.position, false);
+		if(drop != null){
+			gm.itemWrangler.items.put(position, drop);
+		}
 	}
 
 	@Override

@@ -50,4 +50,9 @@ public class NoteItem implements Item{
 	public int noteIndex(){
 		return noteIndex;
 	}
+
+	@Override
+	public boolean isKey() {
+		return false;
+	}
 }

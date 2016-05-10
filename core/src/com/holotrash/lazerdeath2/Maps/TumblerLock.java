@@ -2,33 +2,32 @@ package com.holotrash.lazerdeath2.Maps;
 
 import com.holotrash.lazerdeath2.Items.Key;
 
-public class ElectronicLock implements Lock{
-
-	private int code;
+public class TumblerLock implements Lock{
 	
-	public ElectronicLock(int code){
-		this.code = code;
+	private int tumbler;
+	
+	public TumblerLock(int tumbler){
+		this.tumbler = tumbler;
 	}
 	
-	public int code(){
-		return this.code;
+	public int tumbler(){
+		return this.tumbler;
 	}
 
 	@Override
 	public boolean isElectronic() {
-		return true;
+		return false;
 	}
 
 	@Override
 	public boolean unlocks(Key key) {
 		boolean result;
 		
-		if(key.isElectronic() && key.pattern() == this.code){
+		if (!key.isElectronic() && key.pattern() == this.tumbler){
 			result = true;
 		} else {
 			result = false;
 		}
-		
 		return result;
 	}
 }
